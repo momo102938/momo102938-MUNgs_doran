@@ -1,6 +1,50 @@
 {
- "name":"doran-desktop","version":"1.0.0","description":"도란 생활 시뮬레이션","author":"Doran","private":true,"main":"main.cjs",
- "scripts":{"start":"electron .","build":"electron-builder --win portable --x64"},
- "devDependencies":{"electron":"45.2.1","electron-builder":"26.18.0"},
- "build":{"appId":"com.doran.desktop","productName":"도란","asar":true,"directories":{"output":"release"},"files":["main.cjs","preload.cjs","package.json"],"extraResources":[{"from":"../dist","to":"web"}],"win":{"target":[{"target":"portable","arch":["x64"]}],"artifactName":"Doran-${version}-portable-x64.exe","signAndEditExecutable":false},"portable":{"requestExecutionLevel":"user"}}
+  "name": "doran-desktop",
+  "version": "1.1.0",
+  "description": "도란 생활 시뮬레이션",
+  "author": "Doran",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.doran.desktop",
+    "productName": "도란",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist",
+        "to": "web"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Doran-${version}-portable-x64.exe",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "requestExecutionLevel": "user"
+    }
+  }
 }

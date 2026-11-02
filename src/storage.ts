@@ -6,11 +6,14 @@ import {
   STORAGE_KEY,
   WORLD_VERSION,
   DEFAULT_CHARACTER_IMAGE,
+  FURNITURE_KINDS,
   type World,
   type Character,
   type Schedule,
   type Place,
+  type FurnitureKind,
 } from "./types";
+import { FURNITURE_META } from "./planSpec";
 import { defaultWorld, defaultPlaces, newCharacter, uid } from "./defaults";
 const obj = (v: unknown): Record<string, any> =>
   v && typeof v === "object" && !Array.isArray(v)
@@ -58,10 +61,17 @@ export function normalizeWorld(input: unknown): World {
       return {
         id,
         name: text(p.name, `장소 ${i + 1}`, 40),
+        layoutVersion: number(p.layoutVersion, 0, 0, 2),
         floor: /^#[a-f\d]{6}$/i.test(p.floor) ? p.floor : "#e7ceaa",
         rooms: list(p.rooms ?? d.places.find((x) => x.id === id)?.rooms)
           .slice(0, 40)
           .map((r) => ({
+            id: text(r.id, uid(), 80),
+            pattern: ["wood", "tile", "grass", "plain"].includes(r.pattern)
+              ? r.pattern
+              : "wood",
+            border: r.border !== false,
+            radius: number(r.radius, 0, 0, 40),
             name: text(r.name, "공간", 40),
             x: number(r.x, 0),
             y: number(r.y, 0),
@@ -72,17 +82,36 @@ export function normalizeWorld(input: unknown): World {
         furniture: list(
           p.furniture ?? d.places.find((x) => x.id === id)?.furniture,
         )
-          .slice(0, 120)
+          .slice(0, 200)
           .map((f) => ({
             id: text(f.id, uid(), 80),
-            kind: ["소파", "침대", "테이블", "책상", "화분", "메모"].includes(
-              f.kind,
-            )
-              ? f.kind
-              : "메모",
+            kind: FURNITURE_KINDS.includes(f.kind) ? f.kind : "메모",
+            w: number(
+              f.w,
+              FURNITURE_META[
+                FURNITURE_KINDS.includes(f.kind)
+                  ? (f.kind as FurnitureKind)
+                  : "메모"
+              ].w,
+              0.5,
+              100,
+            ),
+            h: number(
+              f.h,
+              FURNITURE_META[
+                FURNITURE_KINDS.includes(f.kind)
+                  ? (f.kind as FurnitureKind)
+                  : "메모"
+              ].h,
+              0.5,
+              100,
+            ),
+            rotation:
+              (Math.round(number(f.rotation, 0, 0, 359) / 45) * 45) % 360,
+            color: /^#[a-f\d]{6}$/i.test(f.color) ? f.color : "",
             label: text(f.label, "가구", 60),
-            x: number(f.x, 50, 5, 95),
-            y: number(f.y, 50, 8, 92),
+            x: number(f.x, 50),
+            y: number(f.y, 50),
           })),
       };
     });

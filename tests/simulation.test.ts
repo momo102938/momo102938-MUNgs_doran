@@ -85,7 +85,7 @@ test("이전 저장본의 꾸민 공간과 빈 공간을 유지하고 기본 장
   w.places[0].rooms = [];
   w.places[0].floor = "#123456";
   const n = normalizeWorld(w);
-  assert.equal(n.places.length, 4);
+  assert.equal(n.places.length, 5);
   assert.equal(n.places[0].floor, "#123456");
   assert.deepEqual(n.places[0].furniture, []);
   assert.deepEqual(n.places[0].rooms, []);
@@ -149,4 +149,57 @@ test("자녀의 일반 점심 일정은 학교에서 이어진다", () => {
     action: "식사",
     placeId: "school",
   });
+});
+test("구버전 사용자 배치를 유지하면서 대학교와 구조 편집 기본값을 보완한다", () => {
+  const w = defaultWorld();
+  w.version = 1;
+  w.places = w.places.filter((p) => p.id !== "university");
+  w.places[0].furniture = [
+    {
+      id: "my-wall",
+      kind: "벽",
+      label: "직접 만든 벽",
+      x: 12,
+      y: 18,
+      w: 42,
+      h: 0.5,
+      rotation: 90,
+      color: "#123456",
+    },
+  ];
+  w.places[0].rooms = [];
+  const n = normalizeWorld(JSON.parse(JSON.stringify(w)));
+  assert.ok(n.places.some((p) => p.id === "university"));
+  assert.deepEqual(n.places[0].furniture, w.places[0].furniture);
+  assert.deepEqual(n.places[0].rooms, []);
+});
+test("대학교도 일정 장소로 저장하고 해당 시각에 등교한다", () => {
+  const w = defaultWorld();
+  w.characters[0].schedule = [
+    { id: "uni", time: "09:00", action: "등교", placeId: "university" },
+  ];
+  const n = normalizeWorld(JSON.parse(JSON.stringify(w)));
+  assert.deepEqual(activityAt(n.characters[0], at(10)), {
+    action: "등교",
+    placeId: "university",
+  });
+});
+test("가구 크기 회전 색상과 방 무늬를 JSON에 유지한다", () => {
+  const w = defaultWorld();
+  const f = w.places[0].furniture.find((f) => f.kind === "소파")!;
+  Object.assign(f, {
+    x: 46,
+    y: 52,
+    w: 19,
+    h: 28,
+    rotation: 90,
+    color: "#aabbcc",
+  });
+  Object.assign(w.places[0].rooms[0], {
+    pattern: "tile",
+    radius: 12,
+    border: true,
+  });
+  const n = normalizeWorld(JSON.parse(JSON.stringify(w)));
+  assert.deepEqual(n.places[0], w.places[0]);
 });

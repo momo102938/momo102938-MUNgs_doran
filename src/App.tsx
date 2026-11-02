@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useWorldMotion } from "./motion";
 import type { World } from "./types";
 import { loadWorld, saveWorld, downloadWorld } from "./storage";
 import { advance, talk, randomEvent } from "./simulation";
@@ -26,6 +27,11 @@ function Main() {
   const [loaded] = useState(loadWorld);
   const [world, setWorld] = useState(loaded.world);
   const [running, setRunning] = useState(false);
+  const motion = useWorldMotion(world, running);
+  const motionRef = useRef(motion);
+  motionRef.current = motion;
+  const runningRef = useRef(running);
+  runningRef.current = running;
   const [tab, setTab] = useState(tabs[0]);
   const [place, setPlace] = useState("home");
   const [notice, setNotice] = useState("");
@@ -40,12 +46,22 @@ function Main() {
     channel.current = c;
     c.onmessage = (e) => {
       if (e.data?.type === "hello")
-        c.postMessage({ type: "world", world: worldRef.current });
+        c.postMessage({
+          type: "world",
+          world: worldRef.current,
+          motion: motionRef.current,
+          running: runningRef.current,
+        });
     };
     return () => c.close();
   }, []);
   useEffect(() => {
-    channel.current?.postMessage({ type: "world", world });
+    channel.current?.postMessage({
+      type: "world",
+      world,
+      motion: motionRef.current,
+      running,
+    });
     if (canSave) {
       try {
         saveWorld(world);
@@ -54,7 +70,10 @@ function Main() {
         setSaveError("SAVE_FAILED");
       }
     }
-  }, [world, canSave]);
+  }, [world, canSave, running]);
+  useEffect(() => {
+    channel.current?.postMessage({ type: "motion", motion, running });
+  }, [motion, running]);
   useEffect(() => {
     if (!running) return;
     const id = setInterval(
@@ -119,7 +138,7 @@ function Main() {
       : saveError
     : "";
   return (
-    <div className="app">
+    <div className={`app ${tab === tabs[0] ? "observe-mode" : ""}`}>
       <aside className="sidebar">
         <a
           className="brand"
@@ -225,10 +244,12 @@ function Main() {
             <>
               <Observation
                 world={world}
+                motion={motion}
                 placeId={place}
                 setPlaceId={setPlace}
                 update={update}
                 running={running}
+                onHistory={() => setTab(tabs[4])}
                 timeline={
                   <TimeControls
                     world={world}
@@ -237,21 +258,6 @@ function Main() {
                     update={update}
                   />
                 }
-              />
-              <div className="story-actions">
-                <button onClick={() => update((w) => randomEvent(w))}>
-                  ✧ 랜덤 사건
-                </button>
-                <button
-                  className="primary"
-                  onClick={() => update((w) => talk(w))}
-                >
-                  대화 생성
-                </button>
-              </div>
-              <ConversationLog
-                world={world}
-                clear={() => update((w) => ({ ...w, logs: [] }))}
               />
             </>
           )}

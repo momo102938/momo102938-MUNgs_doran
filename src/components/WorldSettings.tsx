@@ -70,7 +70,7 @@ export function WorldSettings({
       <h3>장소 이름</h3>
       <div className="form-grid">
         {world.places.map((p) => (
-          <Field key={p.id} label={`장소 · ${p.id}`}>
+          <Field key={p.id} label="장소 이름">
             <input
               maxLength={40}
               value={p.name}

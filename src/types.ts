@@ -1,7 +1,7 @@
 export const MAX_CHARACTERS = 6;
 export const MAX_LINES = 20;
 export const DEFAULT_CHARACTER_IMAGE = "./characters/placeholder.png";
-export const WORLD_VERSION = 1;
+export const WORLD_VERSION = 2;
 export const STORAGE_KEY = "doran.world.v1";
 export const ACTIONS = [
   "기상",
@@ -24,16 +24,53 @@ export const RELATION_TYPES = [
   "형제자매",
 ] as const;
 export type RelationType = (typeof RELATION_TYPES)[number];
-export type FurnitureKind =
-  "소파" | "침대" | "테이블" | "책상" | "화분" | "메모";
+export const FURNITURE_KINDS = [
+  "소파",
+  "침대",
+  "테이블",
+  "책상",
+  "화분",
+  "메모",
+  "의자",
+  "러그",
+  "싱크대",
+  "냉장고",
+  "욕조",
+  "변기",
+  "세면대",
+  "책장",
+  "수납장",
+  "텔레비전",
+  "벽",
+  "문",
+  "창문",
+  "칠판",
+  "교탁",
+  "강의책상",
+  "시계",
+  "벤치",
+  "나무",
+  "분수",
+  "카페",
+  "조명",
+] as const;
+export type FurnitureKind = (typeof FURNITURE_KINDS)[number];
 export interface Furniture {
   id: string;
   kind: FurnitureKind;
   x: number;
   y: number;
   label: string;
+  w?: number;
+  h?: number;
+  rotation?: number;
+  color?: string;
 }
 export interface Room {
+  id?: string;
+  pattern?: "wood" | "tile" | "plain" | "grass";
+  border?: boolean;
+  radius?: number;
   name: string;
   x: number;
   y: number;
@@ -45,6 +82,7 @@ export interface Place {
   id: string;
   name: string;
   floor: string;
+  layoutVersion?: number;
   rooms: Room[];
   furniture: Furniture[];
 }

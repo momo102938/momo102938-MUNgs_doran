@@ -1,3 +1,4 @@
+import { sanitizeMotion, type MotionMap } from "../motion";
 import { useEffect, useState } from "react";
 import { type World, STORAGE_KEY } from "../types";
 import { loadWorld, normalizeWorld } from "../storage";
@@ -7,6 +8,8 @@ import { activityAt, timeString } from "../simulation";
 export function PopupView() {
   const [world, setWorld] = useState<World>(() => loadWorld().world);
   const [placeId, setPlaceId] = useState("home");
+  const [motion, setMotion] = useState<MotionMap>({});
+  const [running, setRunning] = useState(false);
   const [top, setTop] = useState(true);
   const [connected, setConnected] = useState(false);
   useEffect(() => {
@@ -14,9 +17,16 @@ export function PopupView() {
     document.documentElement.classList.add("popup-document");
     const channel = new BroadcastChannel("doran.live");
     channel.onmessage = (e) => {
+      if (e.data?.type === "motion") {
+        setMotion(sanitizeMotion(e.data.motion));
+        setRunning(e.data.running === true);
+        return;
+      }
       if (e.data?.type === "world") {
         try {
           setWorld(normalizeWorld(e.data.world));
+          setMotion(sanitizeMotion(e.data.motion));
+          setRunning(e.data.running === true);
           setConnected(true);
         } catch {
           /* 잘못된 다른 창 메시지는 무시한다. */
@@ -72,7 +82,12 @@ export function PopupView() {
         </div>
       </header>
       <PlaceTabs world={world} placeId={place.id} onSelect={setPlaceId} />
-      <FloorPlan world={world} place={place} />
+      <FloorPlan
+        world={world}
+        place={place}
+        motion={motion}
+        running={running}
+      />
       <div className="popup-actions">
         {world.characters
           .filter((c) => activityAt(c, world.clock).placeId === place.id)

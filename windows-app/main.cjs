@@ -5,6 +5,7 @@ const {
   protocol,
   net,
   Menu,
+  screen,
 } = require("electron");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
@@ -110,9 +111,11 @@ app.whenReady().then(() => {
     }
   });
   Menu.setApplicationMenu(null);
+  const workArea = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 960,
+    width: Math.min(1280, workArea.width),
+    height: Math.min(800, workArea.height),
+    useContentSize: false,
     minWidth: 760,
     minHeight: 600,
     title: "도란",

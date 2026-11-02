@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
+import type { MotionMap } from "../motion";
 import { MAX_CHARACTERS, type World } from "../types";
 import { FloorPlan, CharacterImage } from "./FloorPlan";
 import { Meter } from "./Fields";
-import { activityAt, timeString } from "../simulation";
+import { activityAt, timeString, talk, randomEvent } from "../simulation";
 export function PlaceTabs({
   world,
   placeId,
@@ -20,7 +21,15 @@ export function PlaceTabs({
           className={p.id === placeId ? "active" : ""}
           onClick={() => onSelect(p.id)}
         >
-          <span>{["⌂", "▦", "▤", "♧"][i % 4]}</span>
+          <span>
+            {{
+              home: "⌂",
+              office: "▦",
+              school: "▤",
+              square: "♧",
+              university: "▥",
+            }[p.id] || "⌂"}
+          </span>
           {p.name}
           <small>
             {
@@ -37,20 +46,28 @@ export function PlaceTabs({
 }
 export function Observation({
   world,
+  motion,
   placeId,
   setPlaceId,
   update,
   timeline,
   running,
+  onHistory,
 }: {
   world: World;
+  motion: MotionMap;
   placeId: string;
   setPlaceId: (s: string) => void;
   update: (fn: (w: World) => World) => void;
   timeline: ReactNode;
   running: boolean;
+  onHistory: () => void;
 }) {
   const [edit, setEdit] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (edit && !dialog.current?.open) dialog.current?.showModal();
+  }, [edit]);
   const [selected, setSelected] = useState(world.characters[0].id);
   const c =
     world.characters.find((c) => c.id === selected) || world.characters[0];
@@ -60,7 +77,7 @@ export function Observation({
     .filter((l) => l.speakerId === c.id && l.kind === "대화")
     .at(-1);
   return (
-    <>
+    <section className="observation-shell">
       <div className="section-head observe-title">
         <h1>
           {world.name || "도란"} <span className="title-sun">☀</span>
@@ -86,7 +103,7 @@ export function Observation({
           </div>
           <div className="scene-stage">
             <div className="scene-location">
-              ♧ {place.name}{" "}
+              {place.name}{" "}
               <span>
                 {
                   world.characters.filter(
@@ -95,11 +112,18 @@ export function Observation({
                 }
                 명 머무는 중
               </span>
+              {!place.layoutVersion && (
+                <small>
+                  새 도면은 ‘전개도 꾸미기 → 기본 도면 복원’에서 적용해요.
+                </small>
+              )}
             </div>
             <FloorPlan
               world={world}
               place={place}
-              edit={edit}
+              edit={false}
+              motion={motion}
+              running={running}
               onCharacter={setSelected}
               onPlace={(p) =>
                 update((w) => ({
@@ -186,7 +210,77 @@ export function Observation({
           </p>
         </aside>
       </div>
-    </>
+      <section className="panel recent-story">
+        <div className="recent-story-heading">
+          <h3>오늘의 이야기</h3>
+          <div className="button-row">
+            <button onClick={() => update((w) => randomEvent(w))}>
+              ✧ 랜덤 사건
+            </button>
+            <button onClick={onHistory}>기록 보기</button>
+            <button className="primary" onClick={() => update((w) => talk(w))}>
+              대화 생성
+            </button>
+          </div>
+        </div>
+        <div className="recent-lines">
+          {world.logs.length ? (
+            world.logs
+              .slice(-2)
+              .reverse()
+              .map((l) => (
+                <div key={l.id}>
+                  <time>{timeString(l.at)}</time>
+                  <b>
+                    {l.kind === "사건"
+                      ? "작은 사건"
+                      : world.characters.find((c) => c.id === l.speakerId)
+                          ?.name}
+                  </b>
+                  <span>{l.text}</span>
+                </div>
+              ))
+          ) : (
+            <p>아직은 고요한 하루예요. 재생하거나 대화를 시작해 보세요.</p>
+          )}
+        </div>
+      </section>
+      <dialog
+        ref={dialog}
+        className="plan-editor-dialog"
+        onCancel={() => setEdit(false)}
+        onClose={() => setEdit(false)}
+      >
+        <header>
+          <div>
+            <small>공간을 내 취향대로</small>
+            <h2>{place.name} 전개도 편집</h2>
+          </div>
+          <button
+            autoFocus
+            onClick={() => {
+              dialog.current?.close();
+              setEdit(false);
+            }}
+          >
+            완료 · 닫기
+          </button>
+        </header>
+        {edit && (
+          <FloorPlan
+            world={world}
+            place={place}
+            edit
+            onPlace={(p) =>
+              update((w) => ({
+                ...w,
+                places: w.places.map((x) => (x.id === p.id ? p : x)),
+              }))
+            }
+          />
+        )}
+      </dialog>
+    </section>
   );
 }
 export function ConversationLog({
