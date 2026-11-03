@@ -1,3 +1,5 @@
+import { APP_VERSION } from "../version";
+import { KotraHeading, KotraText } from "./KotraText";
 import { orderPlaces, schoolAgeHint } from "../schools";
 import { defaultPlaces } from "../defaults";
 import { useState, useRef, useEffect, type ReactNode } from "react";
@@ -5,7 +7,7 @@ import type { MotionMap } from "../motion";
 import { MAX_CHARACTERS, type World } from "../types";
 import { FloorPlan, CharacterImage } from "./FloorPlan";
 import { Meter } from "./Fields";
-import { activityAt, timeString, talk, randomEvent } from "../simulation";
+import { activityAt, timeString, randomEvent } from "../simulation";
 export function PlaceTabs({
   world,
   placeId,
@@ -36,7 +38,7 @@ export function PlaceTabs({
           {p.name}
           {schoolAgeHint(p.id) && (
             <sup className="school-age">
-              {p.id === "school" ? "~19세" : "20세~"}
+              {p.id === "school" ? "학생 ~19세" : "학생 20세~"}
             </sup>
           )}
           <small>
@@ -88,11 +90,18 @@ export function Observation({
     <section className="observation-shell">
       <div className="section-head observe-title">
         <h1>
-          {world.name || "도란"} <span className="title-sun">☀</span>
+          {!world.name || world.name === "도란" ? (
+            <img
+              className="brand-wordmark"
+              src="./doran-wordmark.svg"
+              alt="도란"
+            />
+          ) : (
+            world.name
+          )}
+          <img className="title-mascot" src="./icon.png" alt="도란의 양" />
+          <small className="app-version">v{APP_VERSION}</small>
         </h1>
-        <span className="weather">
-          ☀ <small>맑은 하루</small>
-        </span>
       </div>
       <div className="observation-grid">
         <section className="panel scene">
@@ -183,7 +192,7 @@ export function Observation({
         </section>
         <aside className="panel character-inspector">
           <div className="section-head">
-            <h3>캐릭터</h3>
+            <KotraHeading level={3}>캐릭터</KotraHeading>
             <small>
               {world.characters.length} / {MAX_CHARACTERS}
             </small>
@@ -202,7 +211,7 @@ export function Observation({
           </div>
           <div className="inspector-profile">
             <CharacterImage c={c} />
-            <h2>{c.name}</h2>
+            <KotraHeading level={2}>{c.name}</KotraHeading>
             <p>
               {c.age}세 · {c.job}
             </p>
@@ -222,7 +231,7 @@ export function Observation({
             <small>대화 기억 {c.memories.length}개 · 기억 중</small>
           </div>
           <div className="inspector-relations">
-            <h4>마음의 거리</h4>
+            <KotraHeading level={4}>마음의 거리</KotraHeading>
             {world.relationships
               .filter((r) => r.a === c.id || r.b === c.id)
               .map((r) => (
@@ -244,17 +253,13 @@ export function Observation({
           </p>
         </aside>
       </div>
-      <section className="panel recent-story">
+      <section className="panel recent-story" aria-label="최근 기록">
         <div className="recent-story-heading">
-          <h3>오늘의 이야기</h3>
           <div className="button-row">
             <button onClick={() => update((w) => randomEvent(w))}>
               ✧ 랜덤 사건
             </button>
             <button onClick={onHistory}>기록 보기</button>
-            <button className="primary" onClick={() => update((w) => talk(w))}>
-              대화 생성
-            </button>
           </div>
         </div>
         <div className="recent-lines">
@@ -266,16 +271,21 @@ export function Observation({
                 <div key={l.id}>
                   <time>{timeString(l.at)}</time>
                   <b>
-                    {l.kind === "사건"
-                      ? "작은 사건"
-                      : world.characters.find((c) => c.id === l.speakerId)
-                          ?.name}
+                    <KotraText
+                      text={
+                        (l.kind === "사건"
+                          ? "작은 사건"
+                          : world.characters.find((c) => c.id === l.speakerId)
+                              ?.name) || ""
+                      }
+                    />
                   </b>
+
                   <span>{l.text}</span>
                 </div>
               ))
           ) : (
-            <p>아직은 고요한 하루예요. 재생하거나 대화를 시작해 보세요.</p>
+            <p>아직은 고요한 하루예요. 시간을 재생하면 일상이 시작돼요.</p>
           )}
         </div>
       </section>
@@ -288,7 +298,7 @@ export function Observation({
         <header>
           <div>
             <small>공간을 내 취향대로</small>
-            <h2>{place.name} 전개도 편집</h2>
+            <KotraHeading level={2}>{place.name} 전개도 편집</KotraHeading>
           </div>
           <button
             autoFocus
@@ -332,12 +342,8 @@ export function ConversationLog({
       (who === "전체" || l.speakerId === who || l.targetId === who),
   );
   return (
-    <section className="panel log-panel">
+    <section className="panel log-panel" aria-label="대화 기록">
       <div className="section-head">
-        <div>
-          <p className="eyebrow">오늘의 작은 순간</p>
-          <h2>오늘의 이야기</h2>
-        </div>
         <div className="button-row">
           <select
             aria-label="기록 종류"
@@ -385,11 +391,16 @@ export function ConversationLog({
                 {timeString(l.at)}
               </time>
               <strong>
-                {l.kind === "사건"
-                  ? "작은 사건"
-                  : world.characters.find((c) => c.id === l.speakerId)?.name ||
-                    "지난 캐릭터"}
+                <KotraText
+                  text={
+                    l.kind === "사건"
+                      ? "작은 사건"
+                      : world.characters.find((c) => c.id === l.speakerId)
+                          ?.name || "지난 캐릭터"
+                  }
+                />
               </strong>
+
               <p>{l.text}</p>
             </div>
           ))
@@ -397,7 +408,7 @@ export function ConversationLog({
           <div className="empty-state">
             <span>☁</span>
             <p>아직 기록된 이야기가 없어요.</p>
-            <small>시간을 재생하거나 대화하기를 눌러 보세요.</small>
+            <small>시간을 재생하면 대화와 사건이 기록돼요.</small>
           </div>
         )}
       </div>

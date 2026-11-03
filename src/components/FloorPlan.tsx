@@ -1,3 +1,4 @@
+import { KotraHeading } from "./KotraText";
 import type { MotionMap } from "../motion";
 import {
   useEffect,
@@ -15,6 +16,7 @@ import {
   type Furniture,
   type Character,
   type Room,
+  type Log,
 } from "../types";
 import { activityAt } from "../simulation";
 import { uid, defaultPlaces } from "../defaults";
@@ -68,6 +70,42 @@ export function FloorPlan({
   const [selection, setSelection] = useState<Selection | null>(null);
   const [category, setCategory] = useState("생활");
   const [history, setHistory] = useState<Place[]>([]);
+  const [bubbles, setBubbles] = useState<Record<string, Log>>({});
+  const seenLog = useRef("");
+  const bubbleTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {},
+  );
+  useEffect(() => {
+    if (edit) return;
+    const last = world.logs
+      .filter((l) => l.kind === "대화" && l.speakerId)
+      .at(-1);
+    if (!last || last.id === seenLog.current) return;
+    seenLog.current = last.id;
+    if (Math.abs(Date.parse(world.clock) - Date.parse(last.at)) > 20 * 60000)
+      return;
+    const speaker = world.characters.find((c) => c.id === last.speakerId);
+    if (!speaker || activityAt(speaker, world.clock).placeId !== place.id)
+      return;
+    const id = speaker.id;
+    setBubbles((old) => ({ ...old, [id]: last }));
+    clearTimeout(bubbleTimers.current[id]);
+    bubbleTimers.current[id] = setTimeout(
+      () =>
+        setBubbles((old) => {
+          const next = { ...old };
+          delete next[id];
+          return next;
+        }),
+      10000,
+    );
+  }, [world.logs, place.id, edit]);
+  useEffect(
+    () => () => {
+      Object.values(bubbleTimers.current).forEach(clearTimeout);
+    },
+    [],
+  );
   useEffect(() => {
     setSelection(null);
     setHistory([]);
@@ -234,10 +272,10 @@ export function FloorPlan({
           >
             <rect x="-200" y="-200" width="1300" height="1000" fill="white" />
             {place.furniture
-              .filter((o) => o.kind === "문")
+              .filter((o) => o.kind === "문" || o.kind === "미닫이창")
               .map((o) => {
-                const w = (o.w ?? FURNITURE_META.문.w) * 9;
-                const h = Math.min((o.h ?? FURNITURE_META.문.h) * 6, 28);
+                const w = (o.w ?? FURNITURE_META[o.kind].w) * 9;
+                const h = Math.min((o.h ?? FURNITURE_META[o.kind].h) * 6, 28);
                 return (
                   <rect
                     key={o.id}
@@ -347,7 +385,7 @@ export function FloorPlan({
               <text
                 className="plan-room-label"
                 x={(r.x + r.w / 2) * 9}
-                y={(r.y + r.h - 4) * 6}
+                y={(/베란다/.test(r.name) ? r.y + 5 : r.y + r.h - 4) * 6}
                 textAnchor="middle"
               >
                 {r.name}
@@ -416,12 +454,21 @@ export function FloorPlan({
                     color={o.color}
                     width={w}
                     height={h}
+                    open={
+                      o.kind === "미닫이창" &&
+                      Object.values(motion || {}).some(
+                        (p) =>
+                          p.placeId === place.id &&
+                          p.walking &&
+                          Math.hypot((p.x - o.x) * 9, (p.y - o.y) * 6) < 72,
+                      )
+                    }
                   />
                 </svg>
                 {o.kind === "메모" && (
                   <text
                     x={w / 2}
-                    y={h * 0.65}
+                    y={h * 0.35}
                     textAnchor="middle"
                     fontSize="10"
                     fill="#887659"
@@ -502,6 +549,48 @@ export function FloorPlan({
                   </svg>
                 </span>
               )}
+              {pose?.pose === "wash" && !walking && (
+                <span className="foam-prop" aria-hidden="true">
+                  <svg viewBox="0 0 100 50">
+                    {[
+                      [14, 28, 10],
+                      [29, 21, 12],
+                      [44, 31, 14],
+                      [60, 22, 12],
+                      [77, 30, 13],
+                      [88, 15, 7],
+                      [23, 8, 5],
+                      [66, 6, 4],
+                    ].map(([cx, cy, r], i) => (
+                      <circle
+                        key={i}
+                        cx={cx}
+                        cy={cy}
+                        r={r}
+                        fill="#fffefd"
+                        stroke="#d5e7e4"
+                        strokeWidth="1.5"
+                      />
+                    ))}
+                  </svg>
+                </span>
+              )}
+              {bubbles[c.id] && (
+                <span
+                  className="plan-speech"
+                  role="status"
+                  style={{
+                    transform:
+                      x < 15
+                        ? "translateX(-15%)"
+                        : x > 85
+                          ? "translateX(-85%)"
+                          : undefined,
+                  }}
+                >
+                  {bubbles[c.id].text}
+                </span>
+              )}
               <span className="plan-name">{c.name}</span>
             </button>
           );
@@ -515,7 +604,10 @@ export function FloorPlan({
             );
             const w = (f.w ?? FURNITURE_META[f.kind].w) * 9,
               h = (f.h ?? FURNITURE_META[f.kind].h) * 6;
-            if (f.kind === "침대" && active.some((p) => p.pose === "sleep"))
+            if (
+              (f.kind === "침대" || f.kind === "1인 침대") &&
+              active.some((p) => p.pose === "sleep")
+            )
               return (
                 <g
                   key={f.id}
@@ -524,14 +616,14 @@ export function FloorPlan({
                 >
                   <rect
                     x={w * 0.11}
-                    y={h * 0.65}
+                    y={h * 0.35}
                     width={w * 0.78}
-                    height={h * 0.23}
+                    height={h * 0.53}
                     fill="#c7b8ac"
                     opacity=".94"
                   />
                   <path
-                    d={`M${w * 0.11} ${h * 0.66}h${w * 0.78}`}
+                    d={`M${w * 0.11} ${h * 0.36}h${w * 0.78}`}
                     stroke="#e0d3be"
                     strokeWidth="3"
                   />
@@ -610,7 +702,7 @@ export function FloorPlan({
       </div>
       <aside className="plan-properties">
         <div className="plan-property-section">
-          <h3>전개도 전체</h3>
+          <KotraHeading level={3}>전개도 전체</KotraHeading>
           <Field label="빈 바닥색">
             <input
               aria-label="빈 바닥색"
@@ -648,7 +740,7 @@ export function FloorPlan({
           </div>
         </div>
         <div className="plan-property-section">
-          <h3>추가하기</h3>
+          <KotraHeading level={3}>추가하기</KotraHeading>
           <div className="object-categories">
             {["생활", "구조", "학교", "야외"].map((g) => (
               <button
@@ -711,7 +803,7 @@ export function FloorPlan({
           </button>
         </div>
         <div className="plan-property-section">
-          <h3>선택한 요소</h3>
+          <KotraHeading level={3}>선택한 요소</KotraHeading>
           <select
             aria-label="요소 선택"
             value={selection ? `${selection.type}:${selection.id}` : ""}

@@ -1,0 +1,106 @@
+{
+  "도란을 시작하기 전에": {
+    "src": "./titles/start.svg",
+    "ratio": 9.11608
+  },
+  "관찰 화면": {
+    "src": "./titles/observe.svg",
+    "ratio": 4.09588
+  },
+  "관계 설정": {
+    "src": "./titles/relation-nav.svg",
+    "ratio": 4.09838
+  },
+  "대화 기록": {
+    "src": "./titles/history-nav.svg",
+    "ratio": 4.1096
+  },
+  "캐릭터": {
+    "src": "./titles/characters.svg",
+    "ratio": 2.87205
+  },
+  "마음의 거리": {
+    "src": "./titles/relationships.svg",
+    "ratio": 4.98
+  },
+  "캐릭터 편집": {
+    "src": "./titles/character-edit.svg",
+    "ratio": 5.15113
+  },
+  "캐릭터 관계 설정": {
+    "src": "./titles/relationship-edit.svg",
+    "ratio": 7.24451
+  },
+  "세계 설정": {
+    "src": "./titles/world.svg",
+    "ratio": 4.09933
+  },
+  "장소 이름": {
+    "src": "./titles/places.svg",
+    "ratio": 4.13767
+  },
+  "이 브라우저에 자동 저장해요": {
+    "src": "./titles/autosave.svg",
+    "ratio": 12.21772
+  },
+  "전개도 전체": {
+    "src": "./titles/plan.svg",
+    "ratio": 5.17157
+  },
+  "추가하기": {
+    "src": "./titles/add.svg",
+    "ratio": 3.76268
+  },
+  "선택한 요소": {
+    "src": "./titles/selection.svg",
+    "ratio": 5.03931
+  },
+  "대화 기억": {
+    "src": "./titles/memory.svg",
+    "ratio": 4.08535
+  },
+  "하루 일정": {
+    "src": "./titles/schedule.svg",
+    "ratio": 4.07965
+  },
+  "자녀 설정": {
+    "src": "./titles/child.svg",
+    "ratio": 4.11175
+  },
+  "기본 대사와 대화 기억": {
+    "src": "./titles/lines-memory.svg",
+    "ratio": 9.55383
+  },
+  "작은 사건": {
+    "src": "./titles/event.svg",
+    "ratio": 4.04278
+  },
+  "지난 캐릭터": {
+    "src": "./titles/past-character.svg",
+    "ratio": 5.14902
+  },
+  "전개도 편집": {
+    "src": "./titles/plan-edit.svg",
+    "ratio": 5.14216
+  },
+  "집": {
+    "src": "./titles/home.svg",
+    "ratio": 0.9174
+  },
+  "회사": {
+    "src": "./titles/office.svg",
+    "ratio": 1.90107
+  },
+  "도란 고등학교": {
+    "src": "./titles/school.svg",
+    "ratio": 5.91698
+  },
+  "도란 대학교": {
+    "src": "./titles/university.svg",
+    "ratio": 5.06538
+  },
+  "광장": {
+    "src": "./titles/square.svg",
+    "ratio": 1.97421
+  }
+}

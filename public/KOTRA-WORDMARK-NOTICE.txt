@@ -1,0 +1,10 @@
+도란 제목 이미지 출처
+
+‘도란’ 제목과 public/titles 안의 고정 문구 이미지는 코트라 볼드체로 조판한 글자를 SVG 도형으로 만든 로고 이미지입니다.
+KOTRA 글꼴 파일은 이 프로젝트와 Windows 앱에 포함하지 않습니다.
+
+글꼴 제작: KOTRA
+공식 배포처: https://www.kotra.or.kr/subList/20000005965?tabid=20
+서체 소개 및 이용 안내: https://noonnu.cc/font_page/485
+
+프로그램 본문에 사용하는 SUIT 글꼴은 fonts/SUIT-LICENSE.txt를 참고하세요.

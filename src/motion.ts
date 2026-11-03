@@ -103,7 +103,9 @@ export function sanitizeMotion(input: unknown): MotionMap {
         facing: p.facing === -1 ? -1 : 1,
       };
       if (
-        ["stand", "sit", "eat", "work", "sleep", "talk"].includes(p.pose || "")
+        ["stand", "sit", "eat", "work", "sleep", "talk", "wash"].includes(
+          p.pose || "",
+        )
       )
         out[id].pose = p.pose;
       if (typeof p.furnitureId === "string")
@@ -142,7 +144,16 @@ export function useWorldMotion(world: World, running: boolean) {
         let initial = spawn(place, i);
         if (
           !running &&
-          ["취침", "식사", "공부", "등교", "출근"].includes(a.action)
+          [
+            "취침",
+            "식사",
+            "공부",
+            "등교",
+            "출근",
+            "씻기",
+            "수업",
+            "바람 쐬기",
+          ].includes(a.action)
         ) {
           const intent = chooseLifeIntent(
             world,
@@ -245,7 +256,8 @@ export function useWorldMotion(world: World, running: boolean) {
           }
           route.wait += dt;
           if (
-            freeActions.includes(a.action) &&
+            (freeActions.includes(a.action) ||
+              ["출근", "등교", "공부", "수업"].includes(a.action)) &&
             route.wait > route.intent.hold
           ) {
             route = makeRoute(route.turn + 1);
@@ -306,7 +318,7 @@ export function useWorldMotion(world: World, running: boolean) {
       });
       poses.current = next;
       setMotion(next);
-    }, 100);
+    }, 125);
     return () => clearInterval(tick);
   }, [running]);
   return motion;

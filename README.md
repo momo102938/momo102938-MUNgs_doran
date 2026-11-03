@@ -2,40 +2,23 @@
 
 캐릭터들이 집·회사·도란 고등학교·광장·도란 대학교에서 보내는 하루를 관찰하는 한국어 생활 시뮬레이션입니다. React + TypeScript + Vite로 작성했습니다. 기존 도란 사이트를 참고한 크림색·베이지색 관찰 화면, 기본 캐릭터 A와 B, 수정 가능한 다섯 전개도, 사용자가 제공한 기본 자리표시자 PNG 한 장을 포함합니다.
 
-**백엔드·Cloudflare·Workers·D1·외부 AI·API 키를 사용하지 않습니다. 온라인 공유 링크와 서버 저장도 제공하지 않습니다.** 웹페이지를 내려받은 뒤 대사 생성과 데이터 저장은 브라우저에서 처리합니다. Windows 앱은 빌드한 웹 화면을 내장하여 오프라인으로 실행합니다. 첨부 참고 이미지의 원본이나 워터마크 이미지를 배포 파일에 넣지 않고 독립적인 편집형 전개도를 구성했습니다.
+**백엔드·Cloudflare·Workers·D1·외부 AI·API 키를 사용하지 않습니다.** 웹페이지를 내려받은 뒤 대사 생성과 데이터 저장은 브라우저에서 처리합니다. Windows 앱은 빌드한 웹 화면을 내장하여 오프라인으로 실행합니다. 첨부 참고 이미지의 원본이나 워터마크 이미지를 배포 파일에 넣지 않고 독립적인 편집형 전개도를 구성했습니다.
 
-## 1.2.2 업데이트: 전개도만 보이는 팝업
+## 1.4.4 업데이트
 
-- 팝업의 제목·시각·탭·아래 상태 문구·외곽 배경과 여백을 제거했습니다. 캐릭터가 움직이는 전개도만 비율을 유지하며 창에 맞춰 표시합니다.
-- 장소 선택·고정 해제·닫기는 마우스를 올리거나 키보드 Tab으로 접근할 때 전개도 위에 표시합니다. 터치 기기에서는 조작할 수 있도록 계속 표시합니다.
-- Electron 팝업은 720×480, 전개도와 같은 3:2 비율이며 위쪽 24픽셀을 잡아 이동합니다. 창 바깥은 투명합니다. 브라우저의 자체 제목 표시줄·테두리는 웹페이지가 제거할 수 없습니다.
+- Windows 메인 창을 **1200×800으로 고정**했습니다. 창 크기 변경·최대화는 막고, 전개도 팝업은 별도 3:2 창으로 유지합니다. 웹은 브라우저 크기에 맞춰 표시합니다.
+- 시작 전에 사용자가 확정한 **도란을 시작하기 전에** 주의사항을 보여 줍니다. 시작하기를 누르면 관찰 화면으로 들어갑니다. 전개도 팝업에는 주의사항을 띄우지 않습니다. 문구는 `src/components/StartNotice.tsx`에서 수정합니다.
+- ‘도란’ 로고와 화면의 고정된 굵은 한글 제목·메뉴·접기 항목·사건 라벨은 **코트라 볼드체 모양의 SVG 이미지**로 통일했습니다. 시작 안내는 **양 그림 옆에 제목**을 가로로 배치하고, 그림의 여백을 고려해 사이 간격을 줄였습니다. 메뉴·본문·입력창·말풍선의 일반 글자는 **SUIT**입니다. 코트라 원본 글꼴 파일은 재배포하지 않고 완성된 문구 이미지 `public/titles/`만 포함합니다. 직접 입력하는 캐릭터 이름 등 동적 문구는 PC에 설치된 KOTRA 글꼴을 우선 사용하며, 미설치 시 SUIT로 표시합니다. 고정 문구를 새로 조판하려면 원 제작자의 글꼴 파일을 프로젝트 밖에 준비한 뒤 `python scripts/render-kotra-titles.py /로컬/글꼴파일`을 사용합니다(Python fontTools 필요). SVG 목록은 `src/kotra-titles.json`, 표시 컴포넌트는 `src/components/KotraText.tsx`입니다.
+- 시작 주의사항 제목 옆과 관찰 화면의 도란 로고 옆에 **v1.4.4**를 작게 표시합니다. 두 화면 모두 `src/version.ts`에서 읽는 최상위 `package.json`의 버전을 사용합니다. 같은 값을 따로 적지 않습니다. 글꼴 출처는 `public/KOTRA-WORDMARK-NOTICE.txt`, SUIT 이용 안내는 `public/fonts/SUIT-LICENSE.txt`에 있습니다.
+- 화분은 **위에서 본 둥근 화분과 잎**으로 수정했습니다. 의자 등받이는 식탁·책상을 향해 앉도록 바깥쪽으로 정돈했고, 거실·욕실·서재 가구와 출입문 동선을 정리했습니다.
+- 집 왼쪽에 **베란다**를 추가했습니다. 주방과 맞닿는 위쪽은 벽으로 막고, 거실 쪽은 유리 미닫이창으로 드나듭니다. 가까이 걸어오면 창이 열리며, 일반 창문과 별도로 구조 팔레트에서 추가할 수 있습니다. 자유 행동 중 가끔 바람을 쐬고, ‘바람 쐬기’ 행동을 일정에 넣을 수도 있습니다. 이전 기본 집을 그대로 쓰는 저장본은 자동 보완합니다. 직접 꾸민 집은 유지하므로 새 베란다 배치를 원하면 **집 → ↶ 기본 전개도**로 복원하세요. 복원 전 JSON을 내보내면 기존 배치를 보관할 수 있습니다.
+- **선생님·선생·교사·강사·교원**은 고등학교를 나이 제한 없이 선택할 수 있습니다. **교수·부교수·초빙 교수**의 회사·학교 일정은 대학교로 연결합니다. 학생은 19세까지 고등학교, 20세부터 대학교 기준입니다. 직업별 회사 대사와 교탁 수업, 선택형 연상 존댓말도 유지합니다.
+- **PC 시각만 사용합니다.** 배속·날짜 직접 설정·연동 선택은 제거했습니다. 재생하면 현재 PC 시각에 맞추고, 정지하면 시간과 움직임을 멈춥니다. 다시 재생하면 현재 PC 시각으로 돌아갑니다. ‘말 걸기’와 ‘대화 생성’ 버튼은 제거하고 랜덤 사건 버튼은 유지합니다. 같은 장소의 대화는 재생 중 자동으로 발생합니다.
+- 오른쪽 날씨 표시와 공유·서버 저장 관련 안내 문장을 화면에서 제거했습니다. 관찰·기록·캐릭터 편집·왼쪽 메뉴의 장식 문구도 제거하고 기록 조작 버튼은 오른쪽으로 정렬했습니다. 캐릭터 PNG 안내는 왼쪽 정렬과 단어 단위 줄바꿈으로 정리했습니다.
+- 재생 중 자동 저장은 최대 3초 간격으로 묶고, 정지·수정·직접 저장·창 종료 때 저장합니다. 캐릭터 위치는 초당 8회 갱신하며 CSS 보간으로 이어 보입니다. 기본 도면을 불러오는 중복 작업도 줄였습니다. 세계 데이터와 캐릭터 PNG는 계속 브라우저에 보관합니다.
+- 앉을 때 크기 유지, 침대 회전에 따른 베개 방향 취침, 씻기 거품, 팝업 말풍선, PNG 업로드·기억 편집, 전개도 전체 편집과 JSON 내보내기·불러오기를 포함합니다.
 
-## 1.2.1 업데이트: 벽과 문의 연결
-
-- 문이 놓인 자리의 벽과 방 테두리에 실제로 틈을 표시합니다. 문을 이동·회전·크기 조절하면 틈도 즉시 따라갑니다.
-- 문턱을 문 좌표의 중심에 맞추고, 문짝과 여닫는 방향을 표시하는 호를 분리했습니다. 기존 전개도를 초기화하지 않아도 적용됩니다.
-- 캐릭터의 문 통과 판정도 같은 문턱 위치를 사용합니다.
-
-## 1.2 업데이트: 생활 연출과 이미지·아이콘
-
-- 캐릭터 카드의 ‘오늘도, 나답게’를 **성격**으로 변경했습니다.
-- 새로 받은 갈색 톤 캐릭터 PNG를 기본 자리표시자로 사용합니다. 사용자가 직접 업로드한 PNG는 그대로 보존합니다.
-- 장소 순서는 **집 → 회사 → 도란 고등학교 → 도란 대학교 → 광장**입니다. 고등학교는 19세 이하, 대학교는 20세 이상으로 일정을 자동 연결합니다. 나이를 바꾸거나 과거 저장본을 불러와도 학교 기준을 적용합니다.
-- 전개도 옆 **↶ 기본 전개도** 버튼을 추가했습니다. 해당 장소만 기본 배치로 복원합니다. 편집 창의 기존 복원 버튼도 유지합니다.
-- 가구를 사각형으로 늘려 그리지 않고, 실제 크기에 맞춰 내부 부품을 배치합니다. 모니터·접시·컵 등은 비율을 유지하고, 가구 팔레트도 원래 형태로 표시합니다.
-- 집 안에서는 캐릭터별 걷는 속도·쉬는 시간·목적지를 다르게 합니다. 각자 산책하다가 다른 캐릭터에게 잠깐 다가가거나 책장·화분·창문을 구경합니다.
-- 식사 때는 같은 식탁 주변의 다른 의자에 앉으며 접시·수저 동작을 표시합니다. 취침 때는 침대 위에 눕고 이불을 표시합니다. 공부·업무에는 책상에 앉는 연출을 적용합니다. 별도 자세 이미지 없이 업로드한 한 장의 PNG를 회전·배치·가림 처리하는 방식입니다.
-- 받은 양 그림을 웹 탭 아이콘과 Electron 창·Windows EXE 아이콘으로 적용했습니다. `public/icon.png`, `public/favicon.ico`, `windows-app/build/icon.png`, `windows-app/build/icon.ico`에 포함합니다. Windows EXE는 아이콘 리소스를 포함하도록 다시 빌드해야 합니다. 빌드 후 실제 Windows 아이콘 표시는 Windows에서 확인하세요.
-
-## 1.1 업데이트: 한 화면 관찰과 전체 전개도 편집
-
-- Windows 앱의 기본 창 크기를 **1280×800**으로 설정했습니다. 작업 표시줄 등을 제외한 작업 영역이 더 작으면 그 안에 맞춰 열립니다. 데스크톱 관찰 화면은 창 높이에 맞춰 전개도, 시간 조작, 선택 캐릭터, 최근 대화 두 줄을 함께 보여 줍니다. 작은 모바일 화면에서는 자연스럽게 세로로 스크롤합니다.
-- 긴 대화는 ‘기록 보기’나 왼쪽 ‘대화 기록’에서 확인합니다. 캐릭터가 많거나 설명이 길 때에는 오른쪽 상세 패널 안에서만 스크롤할 수 있습니다.
-- 첨부 참고 그림처럼 집·회사·교실·광장을 **각각 수정 가능한 SVG 요소**로 재구성했습니다. 방 바닥, 벽, 문, 창문, 가구를 옮기거나 크기·회전·색상을 바꿀 수 있습니다. 고정 배경 이미지를 덧붙이는 방식이 아닙니다.
-- **캐릭터 이동**: 재생하면 일정에 맞춰 식탁·책상·침대 주변으로 걸어가고, 자유 시간에는 쉬었다가 주변을 돌아다닙니다. 벽·가구를 피하고 문이 있는 틈을 통과하는 격자 경로 탐색을 사용합니다. 목적지로 갈 수 없으면 도달 가능한 지점까지 이동합니다. 일시 정지하면 이동·동작도 멈춥니다. 이동 위치는 메인 화면이 계산하여 팝업에도 함께 전달합니다.
-- **도란 대학교**에 강의실·세미나실·학생 라운지·캠퍼스 복도를 추가했습니다. 캐릭터 일정과 자녀 학교 선택에도 나타납니다.
-- 기존 캐릭터·관계·기억·전개도 데이터는 보존합니다. 구버전 저장본에는 대학교를 자동으로 보충합니다. **기존 장소를 새 디자인으로 바꾸려면 장소 선택 → ↶ 기본 전개도 (또는 전개도 꾸미기 → 기본 도면 복원)**을 실행하세요. 해당 장소의 기존 배치는 바뀌므로 필요하면 먼저 JSON을 내보내세요.
-- 기존 GitHub 저장소에는 이 ZIP의 소스·설정·잠금 파일을 같은 위치에 덮어 올리고 **Build Windows app**을 다시 실행하세요. 이미 워크플로가 있다면 변경하지 않아도 됩니다. EXE를 다시 빌드해야 변경 내용이 반영됩니다.
+- 1.4.4: 소파를 왼쪽 등받이·두 쿠션 형태로 다듬고 주방 가구와 의자 방향을 정돈했습니다. 일반 문은 얇은 문턱 선으로 표시합니다. 거실과 복도 사이에는 문 없는 통로를 두었습니다. **1인 침대는 전개도 꾸미기에서만 추가**하며 한 명이 사용합니다. 기본 집에는 기존 2인 침대를 유지합니다. 이전 기본 위치의 가구만 자동 보완하고 직접 이동한 가구는 보존합니다.
 
 ## 1. 먼저 실행하기
 
@@ -109,17 +92,17 @@ npm --prefix windows-app start -- --pages
 
 ## 5. 화면 사용법
 
-- **관찰 화면**: 1280×800 데스크톱 창 한 화면에 전개도·상태·최근 이야기 두 줄을 표시합니다. 오른쪽 원형 탭이나 전개도의 캐릭터를 누르면 상세 상태를 볼 수 있습니다. 전개도 아래에서 시간 재생·정지를 조작합니다. 장소 선택, 시간 재생·정지, 1·10·60배속, 캐릭터 상태와 친밀도, 대화·사건을 확인합니다. 1배속은 실제 1초에 게임 속 1분입니다. ‘말 걸기’는 같은 장소의 깨어 있는 캐릭터 둘을 골라 대화시킵니다. 함께 있는 사람이 없으면 대화가 생기지 않습니다.
-- **캐릭터 편집**: 이름·나이·성격·말투·직업·취향·습관·기분·피로도, PNG, 일정, 기본 대사, 기억을 수정합니다. 최소 2명, 기본 최대 6명입니다. 투명 배경 PNG를 업로드하면 최대 400px 범위로 비율을 유지하여 축소합니다. 전신 이미지는 `object-fit: contain`으로 표시합니다. 기본 이미지는 캐릭터가 정해지지 않은 자리표시자입니다. ‘내 캐릭터 PNG 넣기’로 직접 만든 이미지로 바꿀 수 있고 ‘기본 자리표시자로 되돌리기’로 비울 수 있습니다. 이전 버전의 기본 SD는 새 자리표시자로 자동 교체되며, 사용자가 직접 업로드한 이미지는 유지합니다.
+- **관찰 화면**: 1200×800 데스크톱 창에서 전개도·상태·최근 이야기 두 줄을 함께 봅니다. 원형 캐릭터 탭이나 전개도의 캐릭터를 누르면 상태를 볼 수 있습니다. 재생·정지와 장소 선택, 랜덤 사건을 조작하고 자동 대화와 친밀도를 관찰합니다.
+- **캐릭터 편집**: 이름·나이·성격·말투·직업·취향·습관·기분·피로도, PNG, 일정, 기본 대사, 기억을 수정합니다. 최소 2명, 기본 최대 6명입니다. 투명 배경 PNG를 업로드하면 최대 400px 범위로 비율을 유지하여 축소합니다. 전신 이미지는 `object-fit: contain`으로 표시합니다. 기본 이미지는 캐릭터가 정해지지 않은 자리표시자입니다. ‘내 캐릭터 PNG 넣기’로 직접 만든 이미지로 바꿀 수 있고 ‘기본 캐릭터로 되돌리기’로 복원할 수 있습니다. 이전 버전의 기본 SD는 새 자리표시자로 자동 교체되며, 사용자가 직접 업로드한 이미지는 유지합니다.
 - **하루 일정**: 각 항목의 시간이 되면 행동과 장소가 바뀝니다. 자정부터 첫 일정 전까지는 전날 마지막 일정이 이어집니다. 일정은 매일 반복되며 주말·휴일은 따로 계산하지 않습니다. 시간표에 기상·식사·출근·등교·귀가·공부·놀이·대화·취침을 넣을 수 있습니다.
 - **자녀 설정**: 부모 최대 2명과 학교·등교·귀가·취침·숙제를 정합니다. 부모를 선택하면 부모와 자녀 관계도 생성합니다. 자녀는 등교부터 귀가까지 학교에서 생활하며 기본 직장 출근 일정은 무시합니다. 등교·귀가·취침은 같은 시각의 일반 일정보다 우선합니다. 숙제 시간에는 일반 일정에 ‘공부’를 추가하세요. 일반 일정에 넣은 야간 놀이 등은 필요에 맞게 지워 주세요.
 - **관계 설정**: 두 사람 사이에 연인·친구·룸메이트·직장 동료·부모와 자녀·형제자매 중 하나를 지정하고 친밀도를 조절합니다. 작은 사건으로 친밀도가 변합니다.
-- **세계 설정**: 세계·장소 이름, 날짜와 시각, PC 연동, 자동 사건, JSON 입출력을 설정합니다.
+- **세계 설정**: 세계 이름·장소 이름·자동 랜덤 사건 여부를 바꿉니다. 현재 PC 연동 시각은 읽기 전용으로 표시합니다. JSON 내보내기와 불러오기도 이곳에서 합니다.
 - **대화 기록**: 종류·캐릭터별로 확인하고 비울 수 있습니다. 기록 삭제와 캐릭터 기억 삭제는 별개입니다.
 
 ## 6. 대사와 기억의 원리
 
-외부 모델이나 AI API를 호출하지 않습니다. 규칙 엔진이 성격(밝음·다정함·조용함 등 키워드), 말투(존댓말·정중·차분 키워드), 관계·친밀도, 장소·행동, 취향·습관, 기분·피로도, 최근 질문과 대화 기억을 참고하여 문장 후보를 고릅니다. 최근 40개 기록에 나온 동일 문장은 피하고, 후보가 소진되면 조합형 표현을 사용합니다. 유한한 규칙이므로 긴 시간 동안 표현이 다시 등장할 수 있으며 자유로운 AI 추론이나 모든 말투를 모방하는 기능은 아닙니다.
+외부 모델이나 AI API를 호출하지 않습니다. 규칙 엔진이 성격(밝음·다정함·조용함 등 키워드), 말투(존댓말·정중 키워드), 선택형 연상 존댓말, 관계·친밀도, 장소·행동, 취향, 직업, 기분·피로도, 최근 질문과 대화 기억을 참고하여 문장 후보를 고릅니다. 최근 40개 기록에 나온 동일 문장은 피하고, 후보가 소진되면 오래 전에 사용한 자연스러운 문장부터 다시 선택합니다. 유한한 규칙이므로 긴 시간 동안 표현이 다시 등장할 수 있으며 자유로운 AI 추론이나 모든 말투를 모방하는 기능은 아닙니다.
 
 기본 대사는 한 줄에 하나씩 최대 20개입니다. `{상대}`와 `{이름}`을 호칭으로 바꿉니다. 예문 자체도 대사 후보로 사용하므로 해당 캐릭터의 자연스러운 문장을 적어 주세요. **기억은 모델 재학습이 아니라 브라우저에 저장된 대화 내용을 대사 선택에 참고하는 방식**입니다. 보행 위치는 별도로 매 프레임 저장하지 않고 실행 중 메인 화면에서 관리합니다. 재실행하면 일정에 맞는 장소에서 생활을 다시 시작하며, 식사·취침·공부·업무 중에 열면 해당 가구의 자리나 침대 위에 배치합니다. 자동 대화는 참여자 두 명의 기억에 저장하며 캐릭터별 최근 100개를 보관합니다. 기억을 직접 확인·수정·추가·삭제할 수 있습니다. 일부 기억은 반복 인용이나 어색한 질문을 막기 위해 후보에서 제외합니다.
 
@@ -140,7 +123,7 @@ npm --prefix windows-app start -- --pages
 
 ## 8. PC 시각과 작은 창
 
-PC 연동을 켜고 재생하면 **컴퓨터의 현지 날짜·시각**으로 맞춥니다. 배속은 비활성화됩니다. 정지하면 날짜와 시간 변화가 멈추며 다시 재생하면 현재 PC 시간으로 맞춥니다. 정지 상태에서 PC 연동을 켜는 것만으로는 시간이 흐르지 않습니다.
+시간은 항상 **컴퓨터의 현지 날짜·시각**을 사용합니다. 앱을 열면 현재 PC 시각에서 정지한 상태로 시작합니다. 재생하면 현재 PC 시각에 맞춰 일정과 이동을 진행하고, 정지하면 시간과 이동을 멈춥니다. 다시 재생하면 그때의 PC 시각으로 맞춥니다. 배속이나 날짜 직접 설정은 없습니다. 이전 JSON의 시각·배속은 실행 시 PC 연동 방식으로 전환합니다.
 
 **작은 창으로 보기**는 같은 앱의 전개도와 그 안에서 생활하는 캐릭터만 표시합니다. 장소 선택은 마우스를 올리거나 Tab 키로 접근하면 나타납니다. 메인 창이 시간을 계산하고 팝업은 `BroadcastChannel` 및 같은 출처의 저장 이벤트로 데이터를 받아 표시합니다. 이동 좌표도 같은 채널로 받아 메인 화면과 팝업에서 같은 캐릭터 위치를 보여 줍니다. 팝업에서 선택하는 장소는 팝업 안에서만 바뀝니다. **메인 창은 계속 열어 두세요.** 팝업 자체는 시뮬레이션을 진행하거나 세계를 저장하지 않습니다. 메인 창을 두 개 이상 열어 서로 다른 편집을 하면 마지막으로 저장한 내용이 남으므로, 관찰 팝업을 이용해 주세요.
 
@@ -177,7 +160,7 @@ Electron은 `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`�
 | 캐릭터 편집·관계·세계·관찰·팝업 | `src/components/` |
 | 기본 폼·공통 스타일 | `src/styles.css` |
 | 기본 크림·베이지 테마 | `src/theme.css` |
-| 1280×800 관찰 배치·새 전개도·편집 창 스타일 | `src/workspace.css` |
+| 1200×800 관찰 배치·새 전개도·편집 창 스타일 | `src/workspace.css` |
 | Pages 주소·Electron 창·IPC | `windows-app/main.cjs` |
 | 제한된 렌더러 연결 | `windows-app/preload.cjs` |
 
@@ -185,7 +168,7 @@ Electron은 `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`�
 
 ## 11. 검증 범위
 
-이 프로젝트를 작성한 Linux 환경에서 `npm run build`의 TypeScript 검사와 Vite 프로덕션 빌드, `npm test`의 일정·대사·데이터 호환 검사를 실행했습니다. 브라우저에서 관찰 화면, 대화·사건, 재생·정지 및 팝업 데이터 반영을 확인했습니다. 1.1에서는 1280×800의 테스트 프레임에서 문서 가로·세로 크기와 내용 영역 크기가 일치하여 전체 페이지 스크롤이 없는 것을 확인했습니다. 가구 추가·드래그 이동·손잡이 크기 조절·삭제와 대학교 장면도 직접 확인했습니다. 저장 호환·편집 속성·대학교 일정·벽과 문 경로 탐색 등을 포함한 자동 테스트 27개가 통과했습니다. 재생 중의 보행, 정지 후의 좌표 고정, 메인 화면과 팝업의 좌표 일치도 확인했습니다. Windows 전용 EXE의 실제 패키징과 운영체제의 투명 창·항상 위 동작은 이 Linux 환경에서 실행하지 않았습니다. 포함된 Windows Actions 또는 Windows PC에서 빌드해 최종 확인하세요. GitHub 저장소 업로드 및 Pages 게시 자체는 이 파일 생성 작업에서 실행하지 않았습니다.
+이 프로젝트를 작성한 Linux 환경에서 `npm run build`의 TypeScript 검사와 Vite 프로덕션 빌드, `npm test`의 일정·대사·데이터 호환 검사를 실행했습니다. 브라우저에서 관찰 화면, 대화·사건, 재생·정지 및 팝업 데이터 반영을 확인했습니다. 1.4에서는 1200×800 테스트 프레임에서 전체 페이지 스크롤 없음, 주의사항 팝업과 포함 글꼴 로드, PNG 안내문 두 줄 왼쪽 정렬, 베란다 배치와 경로, PC 전용 조작과 버튼 제거를 확인했습니다.  가구 추가·드래그 이동·손잡이 크기 조절·삭제와 대학교 장면도 직접 확인했습니다. 저장 호환·편집 속성·대학교 일정·벽과 문 경로 탐색 등을 포함한 자동 테스트 43개가 통과했습니다. 재생 중의 보행, 정지 후의 좌표 고정, 메인 화면과 팝업의 좌표 일치도 확인했습니다. Windows 전용 EXE의 실제 패키징과 운영체제의 투명 창·항상 위 동작은 이 Linux 환경에서 실행하지 않았습니다. 포함된 Windows Actions 또는 Windows PC에서 빌드해 최종 확인하세요. GitHub 저장소 업로드 및 Pages 게시 자체는 이 파일 생성 작업에서 실행하지 않았습니다.
 
 ## 12. 생성 파일 목록
 
@@ -195,30 +178,96 @@ Electron은 `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`�
 - `.github/workflows/deploy-pages.yml`
 - `.gitignore`
 - `README.md`
-- `dist/assets/index-CYbpU9zk.js`
-- `dist/assets/index-jXbGcP1o.css`
+- `dist/KOTRA-WORDMARK-NOTICE.txt`
+- `dist/assets/index-BUsCdkmU.css`
+- `dist/assets/index-D8NOkv_W.js`
 - `dist/characters/placeholder.png`
+- `dist/doran-wordmark.svg`
 - `dist/favicon.ico`
+- `dist/fonts/SUIT-LICENSE.txt`
+- `dist/fonts/SUIT-Variable.woff2`
 - `dist/icon.png`
 - `dist/index.html`
+- `dist/titles/add.svg`
+- `dist/titles/autosave.svg`
+- `dist/titles/character-edit.svg`
+- `dist/titles/characters.svg`
+- `dist/titles/child.svg`
+- `dist/titles/event.svg`
+- `dist/titles/history-nav.svg`
+- `dist/titles/home.svg`
+- `dist/titles/lines-memory.svg`
+- `dist/titles/memory.svg`
+- `dist/titles/observe.svg`
+- `dist/titles/office.svg`
+- `dist/titles/past-character.svg`
+- `dist/titles/places.svg`
+- `dist/titles/plan-edit.svg`
+- `dist/titles/plan.svg`
+- `dist/titles/relation-nav.svg`
+- `dist/titles/relationship-edit.svg`
+- `dist/titles/relationships.svg`
+- `dist/titles/schedule.svg`
+- `dist/titles/school.svg`
+- `dist/titles/selection.svg`
+- `dist/titles/square.svg`
+- `dist/titles/start.svg`
+- `dist/titles/university.svg`
+- `dist/titles/world.svg`
 - `index.html`
 - `package-lock.json`
 - `package.json`
+- `public/KOTRA-WORDMARK-NOTICE.txt`
 - `public/characters/placeholder.png`
+- `public/doran-wordmark.svg`
 - `public/favicon.ico`
+- `public/fonts/SUIT-LICENSE.txt`
+- `public/fonts/SUIT-Variable.woff2`
 - `public/icon.png`
+- `public/titles/add.svg`
+- `public/titles/autosave.svg`
+- `public/titles/character-edit.svg`
+- `public/titles/characters.svg`
+- `public/titles/child.svg`
+- `public/titles/event.svg`
+- `public/titles/history-nav.svg`
+- `public/titles/home.svg`
+- `public/titles/lines-memory.svg`
+- `public/titles/memory.svg`
+- `public/titles/observe.svg`
+- `public/titles/office.svg`
+- `public/titles/past-character.svg`
+- `public/titles/places.svg`
+- `public/titles/plan-edit.svg`
+- `public/titles/plan.svg`
+- `public/titles/relation-nav.svg`
+- `public/titles/relationship-edit.svg`
+- `public/titles/relationships.svg`
+- `public/titles/schedule.svg`
+- `public/titles/school.svg`
+- `public/titles/selection.svg`
+- `public/titles/square.svg`
+- `public/titles/start.svg`
+- `public/titles/university.svg`
+- `public/titles/world.svg`
+- `scripts/render-kotra-titles.py`
 - `src/App.tsx`
 - `src/components/CharacterEditor.tsx`
 - `src/components/Fields.tsx`
 - `src/components/FloorPlan.tsx`
 - `src/components/FurnitureArt.tsx`
+- `src/components/KotraText.tsx`
 - `src/components/LegacyFurnitureArt.tsx`
 - `src/components/Observation.tsx`
 - `src/components/PopupView.tsx`
 - `src/components/RelationshipEditor.tsx`
+- `src/components/StartNotice.tsx`
 - `src/components/TimeControls.tsx`
 - `src/components/WorldSettings.tsx`
 - `src/defaults.ts`
+- `src/dialogue.ts`
+- `src/kotra-titles.json`
+- `src/layoutUpgrade.ts`
 - `src/life.ts`
 - `src/main.tsx`
 - `src/motion.ts`
@@ -231,10 +280,16 @@ Electron은 `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`�
 - `src/styles.css`
 - `src/theme.css`
 - `src/types.ts`
+- `src/typography.css`
+- `src/version.ts`
 - `src/workspace.css`
+- `tests/balcony.test.ts`
 - `tests/doors.test.ts`
+- `tests/fixtures/home-v3.json`
+- `tests/home-update.test.ts`
 - `tests/life.test.ts`
 - `tests/navigation.test.ts`
+- `tests/refinements.test.ts`
 - `tests/simulation.test.ts`
 - `tsconfig.json`
 - `vite.config.ts`

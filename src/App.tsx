@@ -1,8 +1,10 @@
+import { KotraText } from "./components/KotraText";
+import { StartNotice } from "./components/StartNotice";
 import { useEffect, useRef, useState } from "react";
 import { useWorldMotion } from "./motion";
 import type { World } from "./types";
 import { loadWorld, saveWorld, downloadWorld } from "./storage";
-import { advance, talk, randomEvent } from "./simulation";
+import { advance, randomEvent } from "./simulation";
 import { Observation, ConversationLog } from "./components/Observation";
 import { CharacterEditor } from "./components/CharacterEditor";
 import { RelationshipEditor } from "./components/RelationshipEditor";
@@ -24,8 +26,14 @@ export default function App() {
   );
 }
 function Main() {
+  const [showStart, setShowStart] = useState(true);
   const [loaded] = useState(loadWorld);
-  const [world, setWorld] = useState(loaded.world);
+  const [world, setWorld] = useState<World>(() => ({
+    ...loaded.world,
+    pcSync: true,
+    speed: 1,
+    clock: new Date().toISOString(),
+  }));
   const [running, setRunning] = useState(false);
   const motion = useWorldMotion(world, running);
   const motionRef = useRef(motion);
@@ -39,6 +47,7 @@ function Main() {
   const [canSave, setCanSave] = useState(!loaded.error);
   const worldRef = useRef(world);
   const channel = useRef<BroadcastChannel | null>(null);
+  const lastAutoSave = useRef(0);
   worldRef.current = world;
   const update = (fn: (w: World) => World) => setWorld(fn);
   useEffect(() => {
@@ -62,9 +71,13 @@ function Main() {
       motion: motionRef.current,
       running,
     });
-    if (canSave) {
+    if (
+      canSave &&
+      (!running || performance.now() - lastAutoSave.current >= 3000)
+    ) {
       try {
         saveWorld(world);
+        lastAutoSave.current = performance.now();
         setSaveError("");
       } catch {
         setSaveError("SAVE_FAILED");
@@ -77,23 +90,14 @@ function Main() {
   useEffect(() => {
     if (!running) return;
     const id = setInterval(
-      () =>
-        setWorld((w) =>
-          advance(
-            w,
-            w.pcSync
-              ? new Date().toISOString()
-              : new Date(Date.parse(w.clock) + w.speed * 60000).toISOString(),
-          ),
-        ),
+      () => setWorld((w) => advance(w, new Date().toISOString())),
       1000,
     );
     return () => clearInterval(id);
   }, [running]);
   useEffect(() => {
-    if (running && world.pcSync)
-      setWorld((w) => advance(w, new Date().toISOString()));
-  }, [world.pcSync, running]);
+    if (running) setWorld((w) => advance(w, new Date().toISOString()));
+  }, [running]);
   useEffect(() => {
     if (!notice) return;
     const id = setTimeout(() => setNotice(""), 5000);
@@ -139,6 +143,7 @@ function Main() {
     : "";
   return (
     <div className={`app ${tab === tabs[0] ? "observe-mode" : ""}`}>
+      {showStart && <StartNotice onStart={() => setShowStart(false)} />}
       <aside className="sidebar">
         <a
           className="brand"
@@ -160,17 +165,11 @@ function Main() {
               onClick={() => setTab(t)}
             >
               <span>{["◉", "♧", "♡", "⚙", "☷"][i]}</span>
-              {t}
+              <KotraText text={t} />
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <span className="live-dot" /> 나의 기기에 저장되는 하루
-          <p>
-            온라인 공유 링크와
-            <br />
-            서버 저장은 제공하지 않아요.
-          </p>
           <button onClick={() => downloadWorld(world)}>
             ↓ 도란 파일 내보내기
           </button>
@@ -255,7 +254,6 @@ function Main() {
                     world={world}
                     running={running}
                     onToggle={() => setRunning(!running)}
-                    update={update}
                   />
                 }
               />
@@ -267,10 +265,8 @@ function Main() {
                 world={world}
                 running={running}
                 onToggle={() => setRunning(!running)}
-                update={update}
               />
               <div className="button-row">
-                <button onClick={() => update((w) => talk(w))}>말 걸기</button>
                 <button onClick={() => update((w) => randomEvent(w))}>
                   랜덤 사건
                 </button>
@@ -290,7 +286,12 @@ function Main() {
               report={setNotice}
               replace={(w) => {
                 setRunning(false);
-                setWorld(w);
+                setWorld({
+                  ...w,
+                  pcSync: true,
+                  speed: 1,
+                  clock: new Date().toISOString(),
+                });
                 setCanSave(true);
               }}
             />
@@ -302,12 +303,7 @@ function Main() {
             />
           )}
           <footer className="main-footer">
-            도란 · 작은 일상이 쌓이는 곳{" "}
-            <span>
-              {world.pcSync
-                ? "컴퓨터의 시각을 따라가요."
-                : "1배속은 실제 1초에 게임 속 1분이에요."}
-            </span>
+            도란 · 작은 일상이 쌓이는 곳 <span>컴퓨터의 시각을 따라가요.</span>
           </footer>
         </main>
       </div>

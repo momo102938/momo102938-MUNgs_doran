@@ -21,6 +21,7 @@ export function newCharacter(index: number): Character {
     age: 25,
     personality: index % 2 ? "다정하고 차분함" : "밝고 호기심이 많음",
     tone: index % 2 ? "차분한 존댓말" : "편안한 반말",
+    politeToOlder: false,
     job: "직장인",
     likes: index % 2 ? "책, 커피" : "산책, 음악",
     dislikes: "큰 소음",
@@ -41,6 +42,7 @@ export function newCharacter(index: number): Character {
       ["20:00", "대화", "home"],
       ["21:00", "놀이", "square"],
       ["22:00", "귀가", "home"],
+      ["22:30", "씻기", "home"],
       ["23:00", "취침", "home"],
     ].map(([time, action, placeId]) => ({
       id: uid(),
@@ -56,7 +58,6 @@ export function defaultWorld(): World {
   const a = newCharacter(0),
     b = newCharacter(1);
   const d = new Date();
-  d.setHours(19, 0, 0, 0);
   return {
     version: WORLD_VERSION,
     name: "도란",
@@ -67,8 +68,8 @@ export function defaultWorld(): World {
     ],
     logs: [],
     clock: d.toISOString(),
-    pcSync: false,
-    speed: 10,
+    pcSync: true,
+    speed: 1,
     randomEvents: true,
     lastTalkAt: "",
     lastEventAt: "",

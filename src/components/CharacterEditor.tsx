@@ -1,4 +1,5 @@
-import { schoolForAge } from "../schools";
+import { KotraHeading, KotraText } from "./KotraText";
+import { schoolForAge, isTeacher, isProfessor } from "../schools";
 import { useState } from "react";
 import {
   MAX_CHARACTERS,
@@ -31,7 +32,7 @@ export function CharacterEditor({ world, update, report }: Props) {
           ...next,
           schedule: next.schedule.map((s) => ({
             ...s,
-            placeId: schoolForAge(s.placeId, next.age),
+            placeId: schoolForAge(s.placeId, next.age, next.job),
           })),
           child: next.child
             ? {
@@ -72,8 +73,7 @@ export function CharacterEditor({ world, update, report }: Props) {
     <section className="panel editor">
       <div className="section-head">
         <div>
-          <p className="eyebrow">함께 살아가는 사람들</p>
-          <h2>캐릭터 편집</h2>
+          <KotraHeading level={2}>캐릭터 편집</KotraHeading>
         </div>
         <button
           disabled={world.characters.length >= MAX_CHARACTERS}
@@ -109,12 +109,11 @@ export function CharacterEditor({ world, update, report }: Props) {
             />
           </label>
           <button onClick={() => patch({ image: DEFAULT_CHARACTER_IMAGE })}>
-            기본 자리표시자로 되돌리기
+            기본 캐릭터로 되돌리기
           </button>
-          <p className="muted">
-            투명 배경 SD 캐릭터를 올려 주세요.
-            <br />
-            전신 비율을 유지하며 표시해요.
+          <p className="muted portrait-help">
+            <span>투명 배경 PNG를 올려 주세요.</span>
+            <span>전신 비율을 유지해 표시해요.</span>
           </p>
           <button
             disabled={world.characters.length <= 2}
@@ -195,6 +194,14 @@ export function CharacterEditor({ world, update, report }: Props) {
               />
             </Field>
           ))}
+          <label className="check age-politeness">
+            <input
+              type="checkbox"
+              checked={c.politeToOlder}
+              onChange={(e) => patch({ politeToOlder: e.target.checked })}
+            />{" "}
+            나보다 나이가 많으면 존댓말로 대화
+          </label>
           <Field label={`기분 ${Math.round(c.mood)}`}>
             <input
               type="range"
@@ -216,10 +223,15 @@ export function CharacterEditor({ world, update, report }: Props) {
         </div>
       </div>
       <details open>
-        <summary>하루 일정</summary>
+        <summary>
+          <KotraText text="하루 일정" />
+        </summary>
         <p className="muted">
-          학교는 19세까지 고등학교, 20세부터 대학교로 자동 연결해요. 시간순으로
-          적용돼요. 자정을 지나면 전날 마지막 일정이 다음 일정까지 이어져요.
+          학생은 19세까지 고등학교, 20세부터 대학교로 연결해요.
+          선생님·교사·강사는 학교를 나이 제한 없이 선택할 수 있어요. 교수의
+          회사·학교 일정은 대학교로 연결해요. ‘수업’ 행동을 선택하면 교탁에서
+          가르쳐요. 일정은 시간순으로 적용돼요. 자정을 지나면 전날 마지막 일정이
+          다음 일정까지 이어져요.
         </p>
         <div className="schedule">
           {c.schedule.map((s) => (
@@ -257,8 +269,11 @@ export function CharacterEditor({ world, update, report }: Props) {
                     value={p.id}
                     key={p.id}
                     disabled={
-                      (p.id === "school" && c.age >= 20) ||
-                      (p.id === "university" && c.age < 20)
+                      (isProfessor(c.job) &&
+                        (p.id === "school" || p.id === "office")) ||
+                      (!isTeacher(c.job) &&
+                        ((p.id === "school" && c.age >= 20) ||
+                          (p.id === "university" && c.age < 20)))
                     }
                   >
                     {p.name}
@@ -291,7 +306,9 @@ export function CharacterEditor({ world, update, report }: Props) {
         </button>
       </details>
       <details>
-        <summary>자녀 설정</summary>
+        <summary>
+          <KotraText text="자녀 설정" />
+        </summary>
         <label className="check">
           <input
             type="checkbox"
@@ -430,7 +447,9 @@ export function CharacterEditor({ world, update, report }: Props) {
         )}
       </details>
       <details>
-        <summary>기본 대사와 대화 기억</summary>
+        <summary>
+          <KotraText text="기본 대사와 대화 기억" />
+        </summary>
         <p className="muted">
           기본 대사는 한 줄에 하나씩, 최대 {MAX_LINES}개예요. {"{상대}"}와{" "}
           {"{이름}"}을 호칭으로 바꿔 줘요. 기억은 모델 재학습이 아니라, 이
@@ -451,7 +470,7 @@ export function CharacterEditor({ world, update, report }: Props) {
           />
         </Field>
         <div className="section-head">
-          <h3>대화 기억</h3>
+          <KotraHeading level={3}>대화 기억</KotraHeading>
           <div>
             <button
               onClick={() =>

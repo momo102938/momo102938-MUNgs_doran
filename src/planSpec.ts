@@ -5,6 +5,7 @@ export const FURNITURE_META: Record<
 > = {
   소파: { w: 10, h: 27, group: "생활" },
   침대: { w: 18, h: 31, group: "생활" },
+  "1인 침대": { w: 10, h: 31, group: "생활" },
   테이블: { w: 13, h: 13, group: "생활" },
   책상: { w: 15, h: 12, group: "생활" },
   화분: { w: 7, h: 10, group: "생활" },
@@ -22,6 +23,7 @@ export const FURNITURE_META: Record<
   벽: { w: 30, h: 1.7, group: "구조" },
   문: { w: 8, h: 12, group: "구조" },
   창문: { w: 18, h: 1.8, group: "구조" },
+  미닫이창: { w: 8, h: 3, group: "구조" },
   칠판: { w: 42, h: 6, group: "학교" },
   교탁: { w: 14, h: 10, group: "학교" },
   강의책상: { w: 12, h: 6, group: "학교" },

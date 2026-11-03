@@ -1,3 +1,4 @@
+import { KotraHeading } from "./KotraText";
 import { RELATION_TYPES, type World, type Relationship } from "../types";
 import { uid } from "../defaults";
 import { Field } from "./Fields";
@@ -30,7 +31,7 @@ export function RelationshipEditor({
   return (
     <section className="panel editor">
       <p className="eyebrow">조금씩 가까워지는 사이</p>
-      <h2>캐릭터 관계 설정</h2>
+      <KotraHeading level={2}>캐릭터 관계 설정</KotraHeading>
       <p className="muted">
         같은 장소에서 대화하고 작은 사건을 겪으며 관계가 달라져요. 친밀도가
         낮으면 조심스럽게 대화를 시작해요.
@@ -43,9 +44,9 @@ export function RelationshipEditor({
           );
           return (
             <div className="relation-card" key={`${a.id}:${b.id}`}>
-              <h3>
+              <KotraHeading level={3}>
                 {a.name} <span>↔</span> {b.name}
-              </h3>
+              </KotraHeading>
               <Field label="관계">
                 <select
                   value={r?.type || ""}

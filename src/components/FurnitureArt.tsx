@@ -7,11 +7,13 @@ export function FurnitureArt({
   color,
   width,
   height,
+  open = false,
 }: {
   kind: FurnitureKind;
   color?: string;
   width?: number;
   height?: number;
+  open?: boolean;
 }) {
   const meta = FURNITURE_META[kind],
     w = width ?? meta.w * 9,
@@ -43,33 +45,101 @@ export function FurnitureArt({
   );
   let drawing;
   switch (kind) {
-    case "문": {
-      // 문 좌표는 문턱의 중심이다. 벽의 틈과 같은 위치에 놓고 실내 쪽으로 연다.
-      const radius = Math.max(2, w - 4),
-        threshold = h / 2;
+    case "화분": {
+      // 위에서 본 둥근 화분: 흙과 테두리 위에 작은 잎들이 방사형으로 펼쳐진다.
+      const radius = m * 0.43;
       drawing = (
-        <g
-          fill="none"
-          stroke={color || "#ac997b"}
-          strokeWidth="2"
-          strokeLinecap="round"
-        >
-          <path d={`M2 ${threshold}V${threshold + radius}`} strokeWidth="3" />
-          <path
-            d={`M${w - 2} ${threshold}A${radius} ${radius} 0 0 1 2 ${threshold + radius}`}
-            strokeDasharray="3 3"
-            strokeOpacity=".65"
+        <g transform={`translate(${w / 2} ${h / 2})`}>
+          <circle cy="2" r={radius + 1} fill="#96866d" opacity=".12" />
+          <circle
+            r={radius}
+            fill={color || "#bc9a78"}
+            stroke="#a88c6d"
+            strokeWidth="1.5"
           />
-          <path
-            d={`M2 ${threshold}H${w - 2}`}
-            strokeWidth="1"
-            strokeOpacity=".35"
-          />
-          <circle cx="2" cy={threshold} r="2" fill={color || "#ac997b"} />
+          <circle r={radius * 0.79} fill="#827759" />
+          {[0, 60, 120, 180, 240, 300].map((a, i) => (
+            <g key={a} transform={`rotate(${a})`}>
+              <path
+                d={`M0 0L${m * 0.32} 0`}
+                stroke="#688366"
+                strokeWidth="1.5"
+              />
+              <ellipse
+                cx={m * 0.22}
+                cy="0"
+                rx={m * 0.25}
+                ry={m * 0.105}
+                fill={i % 2 ? "#91a782" : "#b0bc93"}
+                stroke="#7e9776"
+                strokeWidth=".8"
+              />
+              <path
+                d={`M${m * 0.08} 0H${m * 0.39}`}
+                stroke="#d4daba"
+                strokeOpacity=".45"
+                strokeWidth=".8"
+              />
+            </g>
+          ))}
+          <circle r={m * 0.09} fill="#80976d" />
         </g>
       );
       break;
     }
+    case "미닫이창": {
+      const slide = open ? w * 0.25 : 0;
+      drawing = (
+        <g data-sliding-window={open ? "open" : "closed"}>
+          <rect width={w} height={h} fill="#f5f1e5" />
+          <path
+            d={`M0 1H${w}M0 ${h - 1}H${w}`}
+            stroke="#a6b6ad"
+            strokeWidth="2"
+          />
+          {[0, 1].map((i) => (
+            <g
+              key={i}
+              transform={`translate(${i === 0 ? -slide : slide} 0)`}
+              style={{ transition: "transform .25s ease" }}
+            >
+              <rect
+                x={i * w * 0.5 + 1}
+                y={i === 0 ? h * 0.15 : h * 0.35}
+                width={w * 0.5 - 2}
+                height={h * 0.5}
+                fill={color || "#bad7d1"}
+                stroke="#809e95"
+                strokeWidth="1.4"
+              />
+              <path
+                d={`M${i === 0 ? w * 0.43 : w * 0.57} ${i === 0 ? h * 0.26 : h * 0.46}v${h * 0.23}`}
+                stroke="#fdfaf0"
+                strokeWidth="2"
+              />
+              <path
+                d={`M${i * w * 0.5 + w * 0.12} ${h * 0.35}l${w * 0.14} ${-h * 0.1}`}
+                stroke="#ecf8f3"
+                strokeWidth="1"
+              />
+            </g>
+          ))}
+        </g>
+      );
+      break;
+    }
+    case "문":
+      drawing = (
+        <path
+          data-door-threshold="true"
+          d={`M1 ${h / 2}H${w - 1}`}
+          fill="none"
+          stroke={color || "#b5a58b"}
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+      );
+      break;
     case "벽":
       drawing = <rect width={w} height={h} fill={color || "#b7a98d"} />;
       break;
@@ -108,19 +178,23 @@ export function FurnitureArt({
     case "소파":
       drawing = (
         <>
-          {rounded(0, 0, w, h, color || "#9dae8c", 10)}
-          {rounded(w * 0.12, h * 0.06, w * 0.76, h * 0.4, "#bcc8a9", 9)}
-          {rounded(w * 0.12, h * 0.51, w * 0.76, h * 0.42, "#bcc8a9", 9)}
-          {rounded(w * 0.23, h * 0.13, m * 0.35, m * 0.32, "#eae1c4", 5)}
-          <path
-            d={`M${w * 0.08} ${h * 0.08}v${h * 0.83}M${w * 0.92} ${h * 0.08}v${h * 0.83}`}
-            stroke="#8e9f7d"
-            strokeWidth="1.5"
-          />
+          {rounded(0, 0, w, h, color || "#9dae8c", m * 0.14)}
+          {rounded(w * 0.32, h * 0.06, w * 0.59, h * 0.42, "#bcc8a9", m * 0.1)}
+          {rounded(w * 0.32, h * 0.52, w * 0.59, h * 0.42, "#bcc8a9", m * 0.1)}
+          {rounded(
+            w * 0.03,
+            h * 0.025,
+            w * 0.27,
+            h * 0.95,
+            "#8d9f7d",
+            m * 0.12,
+          )}
+          {rounded(w * 0.38, h * 0.13, w * 0.37, w * 0.4, "#eae1c4", m * 0.07)}
         </>
       );
       break;
     case "침대":
+    case "1인 침대":
       drawing = (
         <>
           {rounded(1, 4, w - 2, h - 4, "#c2b6a2", 5)}
@@ -141,23 +215,24 @@ export function FurnitureArt({
             fill="#d8cbb5"
           />
           {rounded(
-            w * 0.15,
+            w * (kind === "1인 침대" ? 0.2 : 0.15),
             h * 0.08,
-            w * 0.3,
+            w * (kind === "1인 침대" ? 0.6 : 0.3),
             Math.min(h * 0.18, w * 0.23),
             "#fffaf1",
             6,
             "#dfd3bb",
           )}
-          {rounded(
-            w * 0.55,
-            h * 0.08,
-            w * 0.3,
-            Math.min(h * 0.18, w * 0.23),
-            "#fffaf1",
-            6,
-            "#dfd3bb",
-          )}
+          {kind === "침대" &&
+            rounded(
+              w * 0.55,
+              h * 0.08,
+              w * 0.3,
+              Math.min(h * 0.18, w * 0.23),
+              "#fffaf1",
+              6,
+              "#dfd3bb",
+            )}
         </>
       );
       break;

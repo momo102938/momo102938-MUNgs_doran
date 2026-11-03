@@ -26,6 +26,7 @@ function inside(o: Furniture, p: Point, padding = 0) {
 const solid = new Set([
   "소파",
   "침대",
+  "1인 침대",
   "테이블",
   "책상",
   "교탁",
@@ -45,7 +46,9 @@ const solid = new Set([
 ]);
 export function buildWalkGrid(place: Place): WalkGrid {
   const open = new Uint8Array(COLS * ROWS);
-  const doors = place.furniture.filter((f) => f.kind === "문");
+  const doors = place.furniture.filter(
+    (f) => f.kind === "문" || f.kind === "미닫이창",
+  );
   const walls = place.furniture.filter(
     (f) => f.kind === "벽" && (f.w ?? 30) >= 1 && (f.h ?? 1.7) >= 1,
   );
@@ -54,7 +57,11 @@ export function buildWalkGrid(place: Place): WalkGrid {
     for (let x = 0; x < COLS; x++) {
       const p = { x: ((x + 0.5) / COLS) * 100, y: ((y + 0.5) / ROWS) * 100 };
       const doorway = doors.some((d) =>
-        inside({ ...d, h: Math.min(d.h ?? FURNITURE_META.문.h, 28 / 6) }, p, 8),
+        inside(
+          { ...d, h: Math.min(d.h ?? FURNITURE_META[d.kind].h, 28 / 6) },
+          p,
+          8,
+        ),
       );
       const roomEdge = place.rooms.some(
         (r) =>

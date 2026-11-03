@@ -1,9 +1,11 @@
+import { isTeacher } from "./schools";
 import type { Action, Character, Furniture, Place, World } from "./types";
 import type { MotionMap } from "./motion";
 import { activityAt } from "./simulation";
 import { nearFurniture, type Point } from "./navigation";
 import { FURNITURE_META } from "./planSpec";
-export type LifePose = "stand" | "sit" | "eat" | "work" | "sleep" | "talk";
+export type LifePose =
+  "stand" | "sit" | "eat" | "work" | "sleep" | "talk" | "wash";
 export interface LifeIntent {
   approach: Point;
   anchor?: Point;
@@ -15,7 +17,13 @@ export interface LifeIntent {
   hold: number;
   facing: 1 | -1;
 }
-export const freeActions: Action[] = ["놀이", "대화", "귀가", "기상"];
+export const freeActions: Action[] = [
+  "놀이",
+  "대화",
+  "귀가",
+  "기상",
+  "바람 쐬기",
+];
 export const seedOf = (s: string) =>
   Array.from(s).reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 17);
 const distance = (a: Point, b: Point) =>
@@ -104,31 +112,68 @@ export function chooseLifeIntent(
   );
   const seed = seedOf(c.id) + turn * 977,
     hold = 3 + (seed % 6);
+  const balcony = place.rooms.find((r) => /베란다/.test(r.name));
+  if (
+    balcony &&
+    (action === "바람 쐬기" ||
+      (freeActions.includes(action) && turn > 0 && seed % 5 === 0))
+  ) {
+    const point = {
+      x: balcony.x + balcony.w * 0.5,
+      y: balcony.y + balcony.h * 0.33,
+    };
+    return {
+      ...empty(point, "베란다에서 바람 쐬는 중", 8 + (seed % 7)),
+      anchor: point,
+    };
+  }
   if (action === "취침") {
-    const beds = place.furniture.filter((o) => o.kind === "침대");
+    const beds = place.furniture.filter(
+      (o) => o.kind === "침대" || o.kind === "1인 침대",
+    );
     if (beds.length) {
       let slots = beds.flatMap((b) =>
-        Array.from({ length: (b.w ?? 18) >= 12 ? 2 : 1 }, (_, i) => ({
-          bed: b,
-          slot: i,
-          capacity: (b.w ?? 18) >= 12 ? 2 : 1,
-        })),
+        Array.from(
+          { length: b.kind === "1인 침대" ? 1 : (b.w ?? 18) >= 12 ? 2 : 1 },
+          (_, i) => ({
+            bed: b,
+            slot: i,
+            capacity: b.kind === "1인 침대" ? 1 : (b.w ?? 18) >= 12 ? 2 : 1,
+          }),
+        ),
       );
-      const { bed, slot, capacity } = slots[index % slots.length];
+      if (index >= slots.length)
+        return empty(nearFurniture(beds[0], index), "잠잘 자리를 찾는 중", 15);
+      const { bed, slot, capacity } = slots[index];
       const anchor = localPoint(
         bed,
         capacity === 2 ? (slot === 0 ? -1 : 1) * (bed.w ?? 18) * 0.19 : 0,
-        (bed.h ?? 31) * 0.05,
+        -(bed.h ?? 31) * 0.32 + 3,
       );
       return {
         ...empty(nearFurniture(bed, index), "새근새근", 9999),
         anchor,
         pose: "sleep",
         furnitureId: bed.id,
-        rotation: ((bed.rotation || 0) + 270) % 360,
-        scale: Math.max(0.55, Math.min(1, (bed.w ?? 18) / 18)) * 0.85,
+        rotation: bed.rotation || 0,
+        scale: 1,
       };
     }
+  }
+  if (action === "씻기") {
+    const bath =
+      place.furniture.find((o) => o.kind === "욕조") ||
+      place.furniture.find((o) => o.kind === "세면대");
+    if (bath) {
+      const point = nearFurniture(bath, index);
+      return {
+        ...empty(point, "뽀득뽀득 씻는 중", 9999),
+        anchor: point,
+        pose: "wash",
+        furnitureId: bath.id,
+      };
+    }
+    return { ...empty(current, "뽀득뽀득 씻는 중", 9999), pose: "wash" };
   }
   if (action === "식사") {
     const table = diningTable(place);
@@ -139,32 +184,76 @@ export function chooseLifeIntent(
         anchor: seat,
         pose: "eat",
         furnitureId: table.id,
-        scale: 0.88,
+        scale: 1,
         facing: seat.x > table.x ? -1 : 1,
       };
     }
   }
-  if (["출근", "등교", "공부"].includes(action)) {
+  const teachingPlace =
+    (place.id === "school" || place.id === "university") && isTeacher(c.job);
+  if (
+    teachingPlace &&
+    (action === "수업" ||
+      ((action === "출근" || action === "등교") && turn % 3 === 0))
+  ) {
+    const podium = place.furniture.find((f) => f.kind === "교탁");
+    if (podium) {
+      const point = localPoint(podium, 0, -(podium.h ?? 9) / 2 - 3);
+      return {
+        ...empty(point, "교탁에서 수업하는 중", 22 + (seed % 12)),
+        anchor: point,
+        pose: "talk",
+        furnitureId: podium.id,
+      };
+    }
+  }
+  const working = ["출근", "등교", "공부", "수업"].includes(action);
+  const takingBreak =
+    working && turn > 0 && (turn + (seedOf(c.id) % 3)) % 4 === 3;
+  if (working && !takingBreak) {
     const desks = place.furniture.filter((o) =>
       ["책상", "강의책상"].includes(o.kind),
     );
     if (desks.length) {
-      const desk = desks[index % desks.length],
+      const desk = teachingPlace
+          ? desks[(index + turn) % desks.length]
+          : desks[index % desks.length],
         seat = seatAt(place, desk, 0);
       return {
         ...empty(
           seat,
-          action === "출근" ? "차근차근 일하는 중" : "집중해서 공부 중",
-          9999,
+          action === "출근" || teachingPlace
+            ? /경찰|형사|수사|보안관|FBI/i.test(c.job)
+              ? "수사 기록을 정리하는 중"
+              : /디자인|디자이너|일러스트|아트/.test(c.job)
+                ? "시안을 다듬는 중"
+                : /개발|프로그래머/.test(c.job)
+                  ? "코드를 확인하는 중"
+                  : /교사|선생|교수|강사|교원/.test(c.job)
+                    ? "수업 자료를 준비하는 중"
+                    : "업무를 차근차근 처리하는 중"
+            : "집중해서 공부 중",
+          18 + (seed % 15),
         ),
         anchor: seat,
         pose: "work",
         furnitureId: desk.id,
-        scale: 0.9,
+        scale: 1,
       };
     }
   }
-  if (freeActions.includes(action)) {
+  if (freeActions.includes(action) || takingBreak) {
+    if (takingBreak && seed % 3 === 0) {
+      const water = place.furniture.find(
+        (f) => f.kind === "세면대" || /커피|탕비/.test(f.label),
+      );
+      if (water)
+        return empty(
+          nearFurniture(water, index),
+          "잠깐 물 한 잔 마시는 중",
+          hold + 3,
+        );
+    }
     const peers = w.characters.filter(
       (x) =>
         x.id !== c.id &&
@@ -172,7 +261,11 @@ export function chooseLifeIntent(
         activityAt(x, w.clock).action !== "취침",
     );
     // 서로 다른 주기로 걷고, 가끔 가까운 사람에게 다가간다. 항상 같은 경로를 따라가지는 않는다.
-    if (turn > 0 && peers.length && (seed % 5 === 0 || action === "대화")) {
+    if (
+      turn > 0 &&
+      peers.length &&
+      (seed % 5 === 0 || (action === "대화" && turn % 3 === 1))
+    ) {
       const peer = peers[seed % peers.length],
         p = poses[peer.id];
       if (p?.placeId === place.id) {
@@ -206,7 +299,7 @@ export function chooseLifeIntent(
           anchor: seat,
           pose: "sit",
           furnitureId: sofa.id,
-          scale: 0.9,
+          scale: 1,
         };
       }
     }
@@ -241,7 +334,15 @@ export function chooseLifeIntent(
           y: room.y + room.h * (0.25 + ((seed >>> 6) % 51) / 100),
         }
       : { x: 10 + (seed % 80), y: 10 + ((seed >>> 8) % 80) };
-    return empty(point, "집 안을 느긋하게 걷는 중", hold);
+    return empty(
+      point,
+      takingBreak
+        ? "잠깐 몸을 푸는 중"
+        : place.id === "home"
+          ? "집 안을 느긋하게 걷는 중"
+          : "주변을 느긋하게 걷는 중",
+      hold,
+    );
   }
   return empty(current, action, hold);
 }
