@@ -1,5 +1,12 @@
 import type { MotionMap } from "../motion";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type PointerEvent,
+  type CSSProperties,
+} from "react";
 import {
   DEFAULT_CHARACTER_IMAGE,
   FURNITURE_KINDS,
@@ -55,6 +62,7 @@ export function FloorPlan({
   running?: boolean;
 }) {
   const svg = useRef<SVGSVGElement>(null);
+  const wallMaskId = `door-openings-${useId().replace(/:/g, "")}`;
   const drag = useRef<Drag | null>(null);
   const [mode, setMode] = useState<"object" | "room">("object");
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -215,6 +223,34 @@ export function FloorPlan({
         onPointerDown={() => setSelection(null)}
       >
         <defs>
+          <mask
+            id={wallMaskId}
+            maskUnits="userSpaceOnUse"
+            x="-200"
+            y="-200"
+            width="1300"
+            height="1000"
+            style={{ maskType: "luminance" }}
+          >
+            <rect x="-200" y="-200" width="1300" height="1000" fill="white" />
+            {place.furniture
+              .filter((o) => o.kind === "문")
+              .map((o) => {
+                const w = (o.w ?? FURNITURE_META.문.w) * 9;
+                const h = Math.min((o.h ?? FURNITURE_META.문.h) * 6, 28);
+                return (
+                  <rect
+                    key={o.id}
+                    x={-w / 2}
+                    y={-h / 2}
+                    width={w}
+                    height={h}
+                    fill="black"
+                    transform={`translate(${o.x * 9} ${o.y * 6}) rotate(${o.rotation || 0})`}
+                  />
+                );
+              })}
+          </mask>
           <pattern
             id="wood-grain"
             width="85"
@@ -284,9 +320,20 @@ export function FloorPlan({
                 height={r.h * 6}
                 rx={(r.radius || 0) * 3}
                 fill={r.color}
-                stroke={r.border ? "#b7a98d" : undefined}
-                strokeWidth="5"
               />
+              {r.border && (
+                <rect
+                  x={r.x * 9}
+                  y={r.y * 6}
+                  width={r.w * 9}
+                  height={r.h * 6}
+                  rx={(r.radius || 0) * 3}
+                  fill="none"
+                  stroke="#b7a98d"
+                  strokeWidth="5"
+                  mask={`url(#${wallMaskId})`}
+                />
+              )}
               {r.pattern && r.pattern !== "plain" && (
                 <rect
                   x={r.x * 9}
@@ -336,59 +383,68 @@ export function FloorPlan({
           return (
             <g
               key={o.id}
-              data-object-id={o.id}
-              data-object-kind={o.kind}
-              className={edit && mode === "object" ? "plan-draggable" : ""}
-              transform={`translate(${o.x * 9} ${o.y * 6}) rotate(${o.rotation || 0}) translate(${-w / 2} ${-h / 2})`}
-              onPointerDown={
-                edit && mode === "object"
-                  ? (e) => start(e, { type: "object", id: o.id })
-                  : undefined
-              }
-              onPointerMove={move}
-              onPointerUp={stop}
-              onPointerCancel={stop}
-              style={{
-                pointerEvents:
-                  edit && mode !== "object" ? "none" : edit ? "auto" : "none",
-              }}
+              mask={o.kind === "벽" ? `url(#${wallMaskId})` : undefined}
             >
-              <title>{o.label}</title>
-              <svg
-                width={w}
-                height={h}
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-                overflow="visible"
+              <g
+                data-object-id={o.id}
+                data-object-kind={o.kind}
+                className={edit && mode === "object" ? "plan-draggable" : ""}
+                transform={`translate(${o.x * 9} ${o.y * 6}) rotate(${o.rotation || 0}) translate(${-w / 2} ${-h / 2})`}
+                onPointerDown={
+                  edit && mode === "object"
+                    ? (e) => start(e, { type: "object", id: o.id })
+                    : undefined
+                }
+                onPointerMove={move}
+                onPointerUp={stop}
+                onPointerCancel={stop}
+                style={{
+                  pointerEvents:
+                    edit && mode !== "object" ? "none" : edit ? "auto" : "none",
+                }}
               >
-                <FurnitureArt kind={o.kind} color={o.color} />
-              </svg>
-              {o.kind === "메모" && (
-                <text
-                  x={w / 2}
-                  y={h * 0.65}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="#887659"
+                <title>{o.label}</title>
+                <svg
+                  width={w}
+                  height={h}
+                  viewBox={`0 0 ${w} ${h}`}
+                  preserveAspectRatio="xMidYMid meet"
+                  overflow="visible"
                 >
-                  {o.label.slice(0, 16)}
-                </text>
-              )}
-              {selected && edit && (
-                <>
-                  <rect className="plan-selection" width={w} height={h} />
-                  <rect
-                    className="plan-handle"
-                    x={w - 6}
-                    y={h - 6}
-                    width="12"
-                    height="12"
-                    onPointerDown={(e) =>
-                      start(e, { type: "object", id: o.id }, true)
-                    }
+                  <FurnitureArt
+                    kind={o.kind}
+                    color={o.color}
+                    width={w}
+                    height={h}
                   />
-                </>
-              )}
+                </svg>
+                {o.kind === "메모" && (
+                  <text
+                    x={w / 2}
+                    y={h * 0.65}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill="#887659"
+                  >
+                    {o.label.slice(0, 16)}
+                  </text>
+                )}
+                {selected && edit && (
+                  <>
+                    <rect className="plan-selection" width={w} height={h} />
+                    <rect
+                      className="plan-handle"
+                      x={w - 6}
+                      y={h - 6}
+                      width="12"
+                      height="12"
+                      onPointerDown={(e) =>
+                        start(e, { type: "object", id: o.id }, true)
+                      }
+                    />
+                  </>
+                )}
+              </g>
             </g>
           );
         })}
@@ -404,13 +460,24 @@ export function FloorPlan({
           return (
             <button
               key={c.id}
-              className={`plan-resident ${walking ? "is-walking" : "is-resting"} ${running ? "motion-playing" : "motion-paused"} ${a.action === "취침" && !walking ? "is-sleeping" : ""}`}
-              style={{ left: x + "%", top: y + "%" }}
+              className={`plan-resident ${walking ? "is-walking" : "is-resting"} ${running ? "motion-playing" : "motion-paused"} ${pose?.pose ? `pose-${pose.pose}` : "pose-stand"}`}
+              style={
+                {
+                  left: x + "%",
+                  top: y + "%",
+                  "--pose-angle": (pose?.rotation || 0) + "deg",
+                  "--pose-scale": pose?.scale || 1,
+                } as CSSProperties
+              }
               aria-label={`${c.name} 상태 보기`}
               onClick={() => onCharacter?.(c.id)}
             >
               <span className="plan-action">
-                {a.action === "취침" ? "💤" : a.action}
+                {walking
+                  ? pose?.label || "걷는 중"
+                  : pose?.pose === "sleep"
+                    ? "💤"
+                    : pose?.label || a.action}
               </span>
               <span
                 className="motion-figure"
@@ -418,10 +485,91 @@ export function FloorPlan({
               >
                 <CharacterImage c={c} />
               </span>
+              {pose?.pose === "eat" && !walking && (
+                <span className="eating-prop" aria-hidden="true">
+                  <svg viewBox="0 0 40 24">
+                    <ellipse
+                      cx="18"
+                      cy="15"
+                      rx="12"
+                      ry="6"
+                      fill="#fff8e6"
+                      stroke="#c6b68c"
+                    />
+                    <circle cx="17" cy="14" r="4" fill="#b9c6a0" />
+                    <path d="M31 4l-5 13" stroke="#a69a7f" strokeWidth="2" />
+                    <circle cx="32" cy="4" r="3" fill="#d5c9ad" />
+                  </svg>
+                </span>
+              )}
               <span className="plan-name">{c.name}</span>
             </button>
           );
         })}
+      {!edit && (
+        <svg className="life-layer" viewBox="0 0 900 600" aria-hidden="true">
+          {place.furniture.map((f) => {
+            const active = Object.values(motion || {}).filter(
+              (p) =>
+                p.placeId === place.id && p.furnitureId === f.id && !p.walking,
+            );
+            const w = (f.w ?? FURNITURE_META[f.kind].w) * 9,
+              h = (f.h ?? FURNITURE_META[f.kind].h) * 6;
+            if (f.kind === "침대" && active.some((p) => p.pose === "sleep"))
+              return (
+                <g
+                  key={f.id}
+                  data-bed-cover={f.id}
+                  transform={`translate(${f.x * 9} ${f.y * 6}) rotate(${f.rotation || 0}) translate(${-w / 2} ${-h / 2})`}
+                >
+                  <rect
+                    x={w * 0.11}
+                    y={h * 0.65}
+                    width={w * 0.78}
+                    height={h * 0.23}
+                    fill="#c7b8ac"
+                    opacity=".94"
+                  />
+                  <path
+                    d={`M${w * 0.11} ${h * 0.66}h${w * 0.78}`}
+                    stroke="#e0d3be"
+                    strokeWidth="3"
+                  />
+                </g>
+              );
+            if (
+              (f.kind === "테이블" || f.kind === "카페") &&
+              active.some((p) => p.pose === "eat")
+            )
+              return (
+                <g
+                  key={f.id}
+                  data-meal-table={f.id}
+                  transform={`translate(${f.x * 9} ${f.y * 6}) rotate(${f.rotation || 0})`}
+                >
+                  {active
+                    .filter((p) => p.pose === "eat")
+                    .map((p, i) => (
+                      <g
+                        key={i}
+                        transform={`translate(${((i % 2) - 0.5) * w * 0.36} ${(Math.floor(i / 2) - 0.3) * h * 0.26})`}
+                      >
+                        <ellipse
+                          rx={Math.min(12, w * 0.1)}
+                          ry={Math.min(9, h * 0.15)}
+                          fill="#fff8e6"
+                          stroke="#c3b591"
+                        />
+                        <circle r="4" fill="#b8c899" />
+                        <path d="M13 -5v10" stroke="#9d9d84" strokeWidth="2" />
+                      </g>
+                    ))}
+                </g>
+              );
+            return null;
+          })}
+        </svg>
+      )}
       {!edit && !here.length && (
         <span className="plan-empty">지금은 조용한 공간이에요.</span>
       )}

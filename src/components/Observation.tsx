@@ -1,3 +1,5 @@
+import { orderPlaces, schoolAgeHint } from "../schools";
+import { defaultPlaces } from "../defaults";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import type { MotionMap } from "../motion";
 import { MAX_CHARACTERS, type World } from "../types";
@@ -15,9 +17,10 @@ export function PlaceTabs({
 }) {
   return (
     <div className="place-tabs">
-      {world.places.map((p, i) => (
+      {orderPlaces(world.places).map((p, i) => (
         <button
           key={p.id}
+          title={schoolAgeHint(p.id) || p.name}
           className={p.id === placeId ? "active" : ""}
           onClick={() => onSelect(p.id)}
         >
@@ -31,6 +34,11 @@ export function PlaceTabs({
             }[p.id] || "⌂"}
           </span>
           {p.name}
+          {schoolAgeHint(p.id) && (
+            <sup className="school-age">
+              {p.id === "school" ? "~19세" : "20세~"}
+            </sup>
+          )}
           <small>
             {
               world.characters.filter(
@@ -95,6 +103,32 @@ export function Observation({
               onClick={() => setEdit(!edit)}
             >
               {edit ? "꾸미기 완료" : "전개도 꾸미기"}
+            </button>
+            <button
+              className="restore-plan"
+              title="현재 장소를 기본 전개도로 되돌리기"
+              onClick={() => {
+                if (
+                  confirm(
+                    `${place.name}을 기본 전개도로 되돌릴까요? 현재 배치는 바뀌어요.`,
+                  )
+                ) {
+                  const original = defaultPlaces().find(
+                    (p) => p.id === place.id,
+                  );
+                  if (original)
+                    update((w) => ({
+                      ...w,
+                      places: w.places.map((p) =>
+                        p.id === place.id
+                          ? { ...original, name: place.name }
+                          : p,
+                      ),
+                    }));
+                }
+              }}
+            >
+              ↶ 기본 전개도
             </button>
             <span className="scene-state">
               <span className="live-dot" />
@@ -182,7 +216,7 @@ export function Observation({
             <Meter label="☾ 피로도" value={c.fatigue} />
           </div>
           <div className="personality-note">
-            <small>오늘도, 나답게</small>
+            <small>성격</small>
             <p>{c.personality}</p>
             <span>♡ {c.likes}</span>
             <small>대화 기억 {c.memories.length}개 · 기억 중</small>

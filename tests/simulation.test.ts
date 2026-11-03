@@ -18,6 +18,7 @@ test("자정 이전의 마지막 일정은 다음 날 첫 일정까지 이어진
 });
 test("자녀의 등교 귀가 취침은 같은 시각 일반 일정보다 우선한다", () => {
   const c = defaultWorld().characters[0];
+  c.age = 16;
   c.child = {
     parentIds: [],
     schoolId: "school",
@@ -137,6 +138,7 @@ test("전개도 항목이 없던 구버전은 기본 도면으로 보완한다",
 });
 test("자녀의 일반 점심 일정은 학교에서 이어진다", () => {
   const c = defaultWorld().characters[0];
+  c.age = 16;
   c.child = {
     parentIds: [],
     schoolId: "school",

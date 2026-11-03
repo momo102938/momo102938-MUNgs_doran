@@ -122,7 +122,7 @@ function Main() {
       const p = window.open(
         url.toString(),
         "doran-popup",
-        "popup,width=740,height=690",
+        "popup,width=720,height=480",
       );
       if (!p)
         setNotice(

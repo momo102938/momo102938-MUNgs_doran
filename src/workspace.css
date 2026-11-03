@@ -865,15 +865,87 @@
     flex-shrink: 0;
   }
 }
-.popup-shell .plan-viewport {
-  height: auto;
-}
-.popup-shell .plan-canvas {
+/* 팝업은 전개도만 표시하고 조작 버튼은 위에 잠깐 겹쳐 보인다. */
+html.popup-document,
+body.popup-body,
+.popup-body #root {
   width: 100%;
-  max-height: 70vh;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+.popup-body .popup-shell {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: hidden;
+}
+.popup-shell .plan-viewport {
+  height: 100%;
+  padding: 0;
+  container-type: size;
+}
+.popup-shell .plan-viewport > .plan-canvas {
+  width: min(100cqw, 150cqh);
+  max-height: none;
+  filter: none;
+}
+.popup-shell .plan-canvas > svg {
+  border-radius: 0;
 }
 .popup-shell .plan-resident {
   height: 24%;
+}
+.popup-drag-handle {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  -webkit-app-region: drag;
+}
+.popup-overlay-controls {
+  position: absolute;
+  z-index: 6;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  -webkit-app-region: no-drag;
+}
+.popup-shell:hover .popup-overlay-controls,
+.popup-shell:focus-within .popup-overlay-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-overlay-controls button,
+.popup-overlay-controls select {
+  width: auto;
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 11px;
+  background: #faf7f0ee;
+  border: 1px solid #d5c9b4;
+  border-radius: 7px;
+}
+@media (hover: none) {
+  .popup-overlay-controls {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 @media (min-width: 901px) {
   .observe-mode .plan-viewport {
@@ -1048,4 +1120,138 @@
 }
 .motion-paused .motion-figure img {
   animation-play-state: paused !important;
+}
+.object-palette svg {
+  flex-shrink: 0;
+  width: 32px;
+  height: 30px;
+  aspect-ratio: auto;
+}
+.school-age {
+  font-size: 7px;
+  color: #b19a76;
+  margin-left: -2px;
+  white-space: nowrap;
+  font-weight: 400;
+}
+.life-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+  filter: none;
+}
+.plan-resident.pose-sleep {
+  width: 8%;
+  height: 18%;
+  z-index: 3;
+}
+.pose-sleep .motion-figure img {
+  transform: rotate(var(--pose-angle)) scale(var(--pose-scale));
+  animation: doran-bed-breathe 3.5s ease-in-out infinite;
+}
+.pose-sleep .plan-action {
+  top: -5px;
+  left: 6%;
+  transform: none;
+  font-size: 10px;
+  background: transparent;
+}
+.pose-sleep .plan-name {
+  bottom: -6px;
+  font-size: 8px;
+}
+.plan-resident.pose-eat,
+.plan-resident.pose-sit,
+.plan-resident.pose-work {
+  width: 8.5%;
+  height: 21%;
+}
+.pose-eat .motion-figure,
+.pose-sit .motion-figure,
+.pose-work .motion-figure {
+  clip-path: inset(0 0 25% 0);
+  padding-top: 8%;
+  overflow: hidden;
+}
+.pose-eat .motion-figure img,
+.pose-work .motion-figure img {
+  transform: scale(var(--pose-scale));
+  animation: doran-seated 2.6s ease-in-out infinite;
+}
+.pose-sit .motion-figure img {
+  transform: scale(var(--pose-scale));
+  animation: doran-seated 3.2s ease-in-out infinite;
+}
+.pose-eat .plan-name,
+.pose-sit .plan-name,
+.pose-work .plan-name {
+  bottom: 12%;
+}
+.eating-prop {
+  position: absolute;
+  width: 48%;
+  height: 24%;
+  bottom: 26%;
+  left: 40%;
+  transform-origin: 90% 40%;
+  animation: doran-spoon 1.7s ease-in-out infinite;
+}
+.eating-prop svg {
+  width: 100%;
+  height: 100%;
+}
+.pose-talk .plan-action {
+  background: #f6ead6;
+  color: #aa8661;
+}
+.motion-paused .eating-prop {
+  animation-play-state: paused;
+}
+@keyframes doran-bed-breathe {
+  0%,
+  100% {
+    transform: rotate(var(--pose-angle)) scale(var(--pose-scale));
+  }
+  50% {
+    transform: rotate(var(--pose-angle)) scale(calc(var(--pose-scale) * 1.015));
+  }
+}
+@keyframes doran-seated {
+  0%,
+  100% {
+    transform: translateY(4%) scale(var(--pose-scale));
+  }
+  50% {
+    transform: translateY(3%) scale(var(--pose-scale));
+  }
+}
+@keyframes doran-spoon {
+  0%,
+  65%,
+  100% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(-18deg) translateY(-2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eating-prop {
+    animation: none !important;
+  }
+}
+
+.pose-sleep .motion-figure img {
+  transform-origin: 50% 50%;
+}
+.plan-resident .plan-action {
+  top: 12%;
+}
+.pose-sleep .plan-action {
+  top: 0;
+  left: 8%;
+  transform: none;
 }

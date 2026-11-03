@@ -1,3 +1,4 @@
+import { orderPlaces, schoolForAge } from "./schools";
 import {
   ACTIONS,
   RELATION_TYPES,
@@ -185,6 +186,13 @@ export function normalizeWorld(input: unknown): World {
       c.child.parentIds = c.child.parentIds.filter((id) =>
         characters.some((p) => p.id === id && p.id !== c.id),
       );
+  for (const c of characters) {
+    c.schedule = c.schedule.map((s) => ({
+      ...s,
+      placeId: schoolForAge(s.placeId, c.age),
+    }));
+    if (c.child) c.child.schoolId = schoolForAge(c.child.schoolId, c.age);
+  }
   const pairs = new Set<string>();
   const relationships = list(raw.relationships)
     .filter(
@@ -210,7 +218,7 @@ export function normalizeWorld(input: unknown): World {
     ...d,
     version: WORLD_VERSION,
     name: text(raw.name, "도란", 40),
-    places,
+    places: orderPlaces(places),
     characters,
     relationships,
     clock: date(raw.clock, d.clock),

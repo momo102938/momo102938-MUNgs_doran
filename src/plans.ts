@@ -1,3 +1,4 @@
+import { orderPlaces } from "./schools";
 // 모든 기본 도면은 아래 좌표와 도형 데이터로 구성된다. 이미지 배경이 아니라 각각 편집 가능한 요소다.
 import type { Furniture, FurnitureKind, Place, Room } from "./types";
 import { FURNITURE_META } from "./planSpec";
@@ -53,7 +54,7 @@ const schoolDesk = (x: number, y: number) => [
   f("의자", x, y + 5.5, 4, 5.5),
 ];
 export function makeDefaultPlaces(): Place[] {
-  return [
+  return orderPlaces([
     {
       id: "home",
       name: "집",
@@ -263,5 +264,5 @@ export function makeDefaultPlaces(): Place[] {
         door(82, 40),
       ],
     },
-  ];
+  ]);
 }

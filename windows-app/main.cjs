@@ -9,6 +9,7 @@ const {
 } = require("electron");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
+const ICON_PATH = path.join(__dirname, "build", "icon.png");
 
 // GitHub Pages 주소는 이 한 곳에서 변경한다. 기본 실행은 내장 파일(오프라인)이다.
 const PAGES_URL = "https://YOUR-NAME.github.io/YOUR-REPOSITORY/";
@@ -74,17 +75,21 @@ function openPopup() {
     return;
   }
   popupWindow = new BrowserWindow({
-    width: 740,
-    height: 730,
-    minWidth: 380,
-    minHeight: 420,
+    width: 720,
+    height: 480,
+    useContentSize: true,
+    minWidth: 360,
+    minHeight: 240,
+    hasShadow: false,
     frame: false,
     transparent: true,
     backgroundColor: "#00000000",
     alwaysOnTop: true,
     autoHideMenuBar: true,
+    icon: ICON_PATH,
     webPreferences: prefs(),
   });
+  popupWindow.setAspectRatio(1.5);
   secureWindow(popupWindow);
   const url = new URL(baseURL);
   url.searchParams.set("popup", "1");
@@ -110,6 +115,7 @@ app.whenReady().then(() => {
       return new Response("파일을 열 수 없어요.", { status: 400 });
     }
   });
+  app.setAppUserModelId("com.doran.desktop");
   Menu.setApplicationMenu(null);
   const workArea = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
@@ -120,6 +126,7 @@ app.whenReady().then(() => {
     minHeight: 600,
     title: "도란",
     backgroundColor: "#f7f5ef",
+    icon: ICON_PATH,
     webPreferences: prefs(),
   });
   secureWindow(mainWindow);

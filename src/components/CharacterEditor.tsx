@@ -1,3 +1,4 @@
+import { schoolForAge } from "../schools";
 import { useState } from "react";
 import {
   MAX_CHARACTERS,
@@ -23,7 +24,23 @@ export function CharacterEditor({ world, update, report }: Props) {
   const patch = (p: Partial<Character>) =>
     update((w) => ({
       ...w,
-      characters: w.characters.map((x) => (x.id === c.id ? { ...x, ...p } : x)),
+      characters: w.characters.map((x) => {
+        if (x.id !== c.id) return x;
+        const next = { ...x, ...p };
+        return {
+          ...next,
+          schedule: next.schedule.map((s) => ({
+            ...s,
+            placeId: schoolForAge(s.placeId, next.age),
+          })),
+          child: next.child
+            ? {
+                ...next.child,
+                schoolId: schoolForAge(next.child.schoolId, next.age),
+              }
+            : null,
+        };
+      }),
     }));
   const changeSchedule = (id: string, p: Partial<Schedule>) =>
     patch({
@@ -201,8 +218,8 @@ export function CharacterEditor({ world, update, report }: Props) {
       <details open>
         <summary>하루 일정</summary>
         <p className="muted">
-          시간순으로 적용돼요. 자정을 지나면 전날 마지막 일정이 다음 일정까지
-          이어져요.
+          학교는 19세까지 고등학교, 20세부터 대학교로 자동 연결해요. 시간순으로
+          적용돼요. 자정을 지나면 전날 마지막 일정이 다음 일정까지 이어져요.
         </p>
         <div className="schedule">
           {c.schedule.map((s) => (
@@ -236,7 +253,14 @@ export function CharacterEditor({ world, update, report }: Props) {
                 }
               >
                 {world.places.map((p) => (
-                  <option value={p.id} key={p.id}>
+                  <option
+                    value={p.id}
+                    key={p.id}
+                    disabled={
+                      (p.id === "school" && c.age >= 20) ||
+                      (p.id === "university" && c.age < 20)
+                    }
+                  >
                     {p.name}
                   </option>
                 ))}
@@ -358,7 +382,14 @@ export function CharacterEditor({ world, update, report }: Props) {
                   }
                 >
                   {world.places.map((p) => (
-                    <option value={p.id} key={p.id}>
+                    <option
+                      value={p.id}
+                      key={p.id}
+                      disabled={
+                        (p.id === "school" && c.age >= 20) ||
+                        (p.id === "university" && c.age < 20)
+                      }
+                    >
                       {p.name}
                     </option>
                   ))}

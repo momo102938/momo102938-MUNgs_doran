@@ -53,7 +53,9 @@ export function buildWalkGrid(place: Place): WalkGrid {
   for (let y = 0; y < ROWS; y++)
     for (let x = 0; x < COLS; x++) {
       const p = { x: ((x + 0.5) / COLS) * 100, y: ((y + 0.5) / ROWS) * 100 };
-      const doorway = doors.some((d) => inside(d, p, 3));
+      const doorway = doors.some((d) =>
+        inside({ ...d, h: Math.min(d.h ?? FURNITURE_META.문.h, 28 / 6) }, p, 8),
+      );
       const roomEdge = place.rooms.some(
         (r) =>
           r.border &&

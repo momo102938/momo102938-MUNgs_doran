@@ -1,3 +1,4 @@
+import { schoolForAge } from "./schools";
 import {
   type World,
   type Character,
@@ -25,7 +26,7 @@ export function activityAt(c: Character, at: string): Activity {
         id: "child-school",
         time: c.child.schoolTime,
         action: "등교",
-        placeId: c.child.schoolId,
+        placeId: schoolForAge(c.child.schoolId, c.age),
       },
       {
         id: "child-home",
@@ -52,10 +53,10 @@ export function activityAt(c: Character, at: string): Activity {
   )
     return {
       action: s.action === "귀가" ? "공부" : s.action,
-      placeId: c.child.schoolId,
+      placeId: schoolForAge(c.child.schoolId, c.age),
     };
   return s
-    ? { action: s.action, placeId: s.placeId }
+    ? { action: s.action, placeId: schoolForAge(s.placeId, c.age) }
     : { action: "놀이", placeId: "home" };
 }
 export function relationOf(

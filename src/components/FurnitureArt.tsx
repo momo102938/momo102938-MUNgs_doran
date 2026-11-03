@@ -1,583 +1,573 @@
 import type { FurnitureKind } from "../types";
-// 100×100의 독립적인 SVG 요소. 전체 도면을 확대해도 선명하고 각각 크기·방향을 바꿀 수 있다.
+import { FURNITURE_META } from "../planSpec";
+import { LegacyFurnitureArt } from "./LegacyFurnitureArt";
+// 외곽 크기에 맞춰 요소를 배치하되 모니터·컵·손잡이 등은 원래 비율을 유지한다.
 export function FurnitureArt({
   kind,
   color,
+  width,
+  height,
 }: {
   kind: FurnitureKind;
   color?: string;
+  width?: number;
+  height?: number;
 }) {
-  const wood = color || "#c5a77d",
+  const meta = FURNITURE_META[kind],
+    w = width ?? meta.w * 9,
+    h = height ?? meta.h * 6,
+    m = Math.min(w, h),
+    wood = color || "#c5a77d",
     edge = "#ad9067",
     mint = "#8fa79a",
     cream = "#fff8e7";
-  const book = (x: number, y: number, c = "#b5c1aa") => (
-    <g key={`${x}-${y}`}>
-      <rect x={x} y={y} width="8" height="70" fill={c} />
-      <path d={`M${x + 2} ${y + 5}v50`} stroke="#e6e0c3" strokeWidth="1" />
-    </g>
+  const rounded = (
+    x: number,
+    y: number,
+    rw: number,
+    rh: number,
+    fill: string,
+    r = 4,
+    stroke?: string,
+  ) => (
+    <rect
+      x={x}
+      y={y}
+      width={Math.max(1, rw)}
+      height={Math.max(1, rh)}
+      rx={Math.min(r, rw / 3, rh / 3)}
+      fill={fill}
+      stroke={stroke}
+      strokeWidth={stroke ? 1.8 : undefined}
+    />
   );
+  let drawing;
   switch (kind) {
-    case "벽":
-      return <rect width="100" height="100" fill={color || "#b7a98d"} />;
-    case "창문":
-      return (
-        <>
-          <rect width="100" height="100" fill="#faf6e9" />
-          <rect x="2" y="17" width="96" height="66" fill={color || "#b8d4cf"} />
-          <path d="M50 14v72" stroke="#fff9ec" strokeWidth="3" />
-        </>
-      );
-    case "문":
-      return (
-        <>
-          <rect x="0" y="89" width="100" height="11" fill="#eee2c8" />
+    case "문": {
+      // 문 좌표는 문턱의 중심이다. 벽의 틈과 같은 위치에 놓고 실내 쪽으로 연다.
+      const radius = Math.max(2, w - 4),
+        threshold = h / 2;
+      drawing = (
+        <g
+          fill="none"
+          stroke={color || "#ac997b"}
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <path d={`M2 ${threshold}V${threshold + radius}`} strokeWidth="3" />
           <path
-            d="M2 97V3 Q95 3 98 97Z"
-            fill="none"
-            stroke={color || "#b4a486"}
-            strokeWidth="2"
+            d={`M${w - 2} ${threshold}A${radius} ${radius} 0 0 1 2 ${threshold + radius}`}
+            strokeDasharray="3 3"
+            strokeOpacity=".65"
           />
-          <path d="M2 3v94h96" fill="none" stroke="#b4a486" strokeWidth="2" />
+          <path
+            d={`M2 ${threshold}H${w - 2}`}
+            strokeWidth="1"
+            strokeOpacity=".35"
+          />
+          <circle cx="2" cy={threshold} r="2" fill={color || "#ac997b"} />
+        </g>
+      );
+      break;
+    }
+    case "벽":
+      drawing = <rect width={w} height={h} fill={color || "#b7a98d"} />;
+      break;
+    case "창문":
+      drawing = (
+        <>
+          <rect width={w} height={h} fill="#fff8eb" />
+          <rect
+            x="2"
+            y="2"
+            width={Math.max(1, w - 4)}
+            height={Math.max(1, h - 4)}
+            fill={color || "#bad4ce"}
+          />
+          <path d={`M${w / 2} 1v${h - 2}`} stroke="#fff9ed" strokeWidth="2" />
         </>
       );
+      break;
     case "러그":
-      return (
+      drawing = (
         <>
+          {rounded(1, 1, w - 2, h - 2, color || "#d6c8ac", m * 0.2, "#c4b494")}
           <rect
-            x="1"
-            y="1"
-            width="98"
-            height="98"
-            rx="20"
-            fill={color || "#d6c8ac"}
-            stroke="#c2b494"
-            strokeWidth="1"
-          />
-          <rect
-            x="4"
-            y="4"
-            width="92"
-            height="92"
-            rx="18"
+            x="5"
+            y="5"
+            width={Math.max(1, w - 10)}
+            height={Math.max(1, h - 10)}
+            rx={m * 0.17}
             fill="none"
-            stroke="#eee2c7"
+            stroke="#f2e6cb"
             strokeWidth="1.5"
           />
         </>
       );
+      break;
     case "소파":
-      return (
+      drawing = (
         <>
-          <rect
-            x="2"
-            y="1"
-            width="96"
-            height="98"
-            rx="12"
-            fill={color || "#9dae8c"}
+          {rounded(0, 0, w, h, color || "#9dae8c", 10)}
+          {rounded(w * 0.12, h * 0.06, w * 0.76, h * 0.4, "#bcc8a9", 9)}
+          {rounded(w * 0.12, h * 0.51, w * 0.76, h * 0.42, "#bcc8a9", 9)}
+          {rounded(w * 0.23, h * 0.13, m * 0.35, m * 0.32, "#eae1c4", 5)}
+          <path
+            d={`M${w * 0.08} ${h * 0.08}v${h * 0.83}M${w * 0.92} ${h * 0.08}v${h * 0.83}`}
+            stroke="#8e9f7d"
+            strokeWidth="1.5"
           />
-          <rect x="13" y="8" width="74" height="39" rx="10" fill="#b9c6a7" />
-          <rect x="13" y="51" width="74" height="40" rx="10" fill="#b9c6a7" />
-          <rect
-            x="23"
-            y="16"
-            width="34"
-            height="24"
-            rx="5"
-            fill="#e9e0c1"
-            transform="rotate(8 40 28)"
-          />
-          <path d="M8 10v80M92 10v80" stroke="#899e7d" strokeWidth="2" />
         </>
       );
+      break;
     case "침대":
-      return (
+      drawing = (
         <>
-          <rect x="0" y="2" width="100" height="98" rx="5" fill="#c2b6a2" />
+          {rounded(1, 4, w - 2, h - 4, "#c2b6a2", 5)}
+          {rounded(w * 0.06, 0, w * 0.88, h * 0.94, wood, 5, edge)}
+          {rounded(w * 0.1, h * 0.04, w * 0.8, h * 0.85, "#f0e4ca", 3)}
           <rect
-            x="7"
-            y="0"
-            width="86"
-            height="91"
-            rx="4"
-            fill={wood}
-            stroke={edge}
-            strokeWidth="2"
-          />
-          <rect x="11" y="4" width="78" height="83" rx="3" fill="#f0e4ca" />
-          <rect x="11" y="31" width="78" height="56" fill="#c4b8ad" />
-          <rect x="11" y="29" width="78" height="8" fill="#d5cab4" />
-          <rect
-            x="15"
-            y="8"
-            width="31"
-            height="20"
-            rx="6"
-            fill="#fffaf1"
-            stroke="#ded2b9"
-            strokeWidth=".6"
+            x={w * 0.1}
+            y={h * 0.32}
+            width={w * 0.8}
+            height={h * 0.57}
+            fill="#c7b8ac"
           />
           <rect
-            x="53"
-            y="8"
-            width="31"
-            height="20"
-            rx="6"
-            fill="#fffaf1"
-            stroke="#ded2b9"
-            strokeWidth=".6"
+            x={w * 0.1}
+            y={h * 0.29}
+            width={w * 0.8}
+            height={Math.min(13, h * 0.07)}
+            fill="#d8cbb5"
           />
+          {rounded(
+            w * 0.15,
+            h * 0.08,
+            w * 0.3,
+            Math.min(h * 0.18, w * 0.23),
+            "#fffaf1",
+            6,
+            "#dfd3bb",
+          )}
+          {rounded(
+            w * 0.55,
+            h * 0.08,
+            w * 0.3,
+            Math.min(h * 0.18, w * 0.23),
+            "#fffaf1",
+            6,
+            "#dfd3bb",
+          )}
         </>
       );
+      break;
     case "테이블":
-      return (
-        <>
-          <rect
-            x="3"
-            y="3"
-            width="94"
-            height="94"
-            rx="30"
-            fill={wood}
-            stroke={edge}
-            strokeWidth="2"
-          />
-          <rect
-            x="20"
-            y="22"
-            width="23"
-            height="43"
-            fill={cream}
-            transform="rotate(-12 30 43)"
-          />
-          <circle cx="71" cy="42" r="10" fill="#fdf5dc" />
-          <circle cx="71" cy="42" r="6" fill="#a4b591" />
-        </>
-      );
     case "교탁":
-      return (
+      drawing = (
         <>
+          {rounded(
+            1,
+            1,
+            w - 2,
+            h - 2,
+            wood,
+            kind === "테이블" ? m * 0.28 : 4,
+            edge,
+          )}
           <rect
-            x="1"
-            y="1"
-            width="98"
-            height="98"
-            rx="4"
-            fill={wood}
-            stroke={edge}
-            strokeWidth="3"
-          />
-          <rect x="20" y="22" width="22" height="52" fill={cream} />
-          <circle cx="78" cy="48" r="10" fill="#edd3aa" />
-        </>
-      );
-    case "책상":
-      return (
-        <>
-          <rect
-            x="1"
-            y="1"
-            width="98"
-            height="98"
-            rx="4"
-            fill={wood}
-            stroke={edge}
-            strokeWidth="3"
-          />
-          <rect
-            x="31"
-            y="14"
-            width="32"
-            height="33"
-            rx="2"
-            fill={mint}
-            stroke="#68877a"
-            strokeWidth="3"
-          />
-          <path d="M46 49v7M38 58h21" stroke="#728678" strokeWidth="5" />
-          <rect x="24" y="68" width="35" height="7" rx="1" fill="#7b8b76" />
-          <rect
-            x="74"
-            y="48"
-            width="15"
-            height="42"
+            x={w * 0.2}
+            y={h * 0.23}
+            width={m * 0.25}
+            height={m * 0.4}
             fill={cream}
-            transform="rotate(-10 80 70)"
+            transform={`rotate(-9 ${w * 0.3} ${h * 0.4})`}
           />
-          <path d="M77 55l8-1m-8 8l8-1m-7 8l8-1" stroke="#c4b99f" />
-          <circle cx="15" cy="68" r="6" fill="#fff4d4" stroke="#b3a078" />
+          <circle cx={w * 0.73} cy={h * 0.45} r={m * 0.09} fill="#fff4db" />
+          <circle cx={w * 0.73} cy={h * 0.45} r={m * 0.055} fill="#abb995" />
         </>
       );
-    case "강의책상":
-      return (
+      break;
+    case "책상":
+    case "강의책상": {
+      const monitorW = Math.min(w * 0.37, h * 0.65),
+        monitorH = monitorW * 0.6;
+      drawing = (
         <>
+          {rounded(1, 1, w - 2, h - 2, wood, 4, edge)}
+          {kind === "책상" ? (
+            <>
+              {rounded(
+                w * 0.32,
+                h * 0.16,
+                monitorW,
+                monitorH,
+                mint,
+                2,
+                "#6c877b",
+              )}
+              <path
+                d={`M${w * 0.32 + monitorW / 2} ${h * 0.16 + monitorH}v${monitorH * 0.2}m-${monitorW * 0.2} 0h${monitorW * 0.4}`}
+                stroke="#718779"
+                strokeWidth="2"
+              />
+              {rounded(
+                w * 0.29,
+                h * 0.73,
+                Math.min(w * 0.35, h * 0.5),
+                Math.min(5, h * 0.1),
+                "#7d8b77",
+                1,
+              )}
+              <circle
+                cx={w * 0.13}
+                cy={h * 0.7}
+                r={Math.min(6, m * 0.09)}
+                fill="#fff4d3"
+                stroke="#b3a078"
+              />
+            </>
+          ) : (
+            <>
+              <rect
+                x={w * 0.3}
+                y={h * 0.2}
+                width={m * 0.6}
+                height={h * 0.55}
+                fill="#b7c2ac"
+              />
+              <rect
+                x={w * 0.3}
+                y={h * 0.2}
+                width={m * 0.3}
+                height={h * 0.55}
+                fill={cream}
+              />
+            </>
+          )}
           <rect
-            x="1"
-            y="1"
-            width="98"
-            height="98"
-            rx="5"
-            fill={wood}
-            stroke={edge}
-            strokeWidth="3"
+            x={w * 0.79}
+            y={h * 0.48}
+            width={Math.min(w * 0.13, h * 0.2)}
+            height={h * 0.4}
+            fill={cream}
+            transform={`rotate(-8 ${w * 0.84} ${h * 0.65})`}
           />
-          <rect x="30" y="20" width="40" height="54" fill="#b7c2ac" />
-          <rect x="30" y="20" width="20" height="54" fill={cream} />
-          <path d="M81 24l-2 45" stroke="#958c6e" strokeWidth="3" />
         </>
       );
+      break;
+    }
     case "의자":
-      return (
+      drawing = (
         <>
-          <rect
-            x="8"
-            y="8"
-            width="84"
-            height="88"
-            rx="20"
-            fill={color || "#8da397"}
-            stroke="#698277"
-            strokeWidth="3"
-          />
-          <rect
-            x="3"
-            y="1"
-            width="94"
-            height="25"
-            rx="8"
-            fill={color || "#95aa9b"}
-            stroke="#698277"
-            strokeWidth="2"
-          />
-          <path d="M16 84h68" stroke="#698277" strokeWidth="2" />
+          {rounded(
+            w * 0.1,
+            h * 0.1,
+            w * 0.8,
+            h * 0.86,
+            color || "#8da397",
+            7,
+            "#6b8578",
+          )}
+          {rounded(
+            w * 0.05,
+            0,
+            w * 0.9,
+            Math.min(h * 0.25, w * 0.25),
+            color || "#96aa9b",
+            4,
+            "#6b8578",
+          )}
         </>
       );
+      break;
     case "싱크대":
-      return (
+      drawing = (
         <>
-          <rect
-            x="1"
-            y="1"
-            width="98"
-            height="98"
-            rx="3"
-            fill="#dfd5b8"
-            stroke={edge}
-            strokeWidth="4"
+          {rounded(1, 1, w - 2, h - 2, "#dfd5b8", 3, edge)}
+          {rounded(
+            w * 0.12,
+            h * 0.1,
+            w * 0.76,
+            h * 0.3,
+            "#bccdc6",
+            6,
+            "#94ab9f",
+          )}
+          <path
+            d={`M${w * 0.47} ${h * 0.1}v-8h12`}
+            stroke="#879f94"
+            strokeWidth="2.5"
+            fill="none"
           />
-          <rect x="8" y="4" width="84" height="92" fill="#ece6d1" />
           <rect
-            x="16"
-            y="11"
-            width="68"
-            height="29"
-            rx="8"
-            fill="#bccdc6"
-            stroke="#91a99f"
-            strokeWidth="3"
+            x={w * 0.1}
+            y={h * 0.57}
+            width={w * 0.8}
+            height={h * 0.36}
+            fill="#899078"
           />
-          <path d="M46 11V5h18" fill="none" stroke="#879e94" strokeWidth="3" />
-          <rect x="10" y="56" width="80" height="37" fill="#889078" />
-          {[28, 69].flatMap((x) =>
-            [65, 83].map((y) => (
+          {[0.31, 0.7].flatMap((x) =>
+            [0.68, 0.83].map((y) => (
               <circle
                 key={`${x}-${y}`}
-                cx={x}
-                cy={y}
-                r="8"
+                cx={w * x}
+                cy={h * y}
+                r={Math.min(w * 0.14, h * 0.065)}
                 fill="none"
                 stroke="#e1dec2"
-                strokeWidth="2"
+                strokeWidth="1.8"
               />
             )),
           )}
         </>
       );
-    case "냉장고":
-      return (
-        <>
-          <rect
-            x="2"
-            y="1"
-            width="96"
-            height="98"
-            rx="6"
-            fill={color || "#cbd3c0"}
-            stroke="#a8b59e"
-            strokeWidth="3"
-          />
-          <path
-            d="M5 38h90M85 13v15m0 25v28"
-            stroke="#a0ad98"
-            strokeWidth="3"
-          />
-        </>
-      );
-    case "화분":
-    case "나무":
-      return (
-        <>
-          <ellipse
-            cx="51"
-            cy="57"
-            rx="34"
-            ry="32"
-            fill="#a9bb8d"
-            opacity=".35"
-          />
-          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
-            <ellipse
-              key={angle}
-              cx="50"
-              cy="30"
-              rx="17"
-              ry="28"
-              fill={color || ["#8da97f", "#9db387", "#789970"][i % 3]}
-              stroke="#78936c"
-              strokeWidth="1"
-              transform={`rotate(${angle} 50 50)`}
-            />
-          ))}
-          <ellipse
-            cx="43"
-            cy="46"
-            rx="20"
-            ry="13"
-            fill="#b0bf92"
-            transform="rotate(25 43 46)"
-          />
-          <ellipse cx="49" cy="47" rx="6" ry="5" fill="#c7d1a9" />
-        </>
-      );
+      break;
     case "책장":
-      return (
+      drawing = (
         <>
           <rect
-            width="100"
-            height="100"
+            x="1"
+            y="1"
+            width={w - 2}
+            height={h - 2}
             fill={wood}
             stroke={edge}
+            strokeWidth="2"
+          />
+          {Array.from({ length: Math.max(1, Math.floor(w / 13)) }, (_, i) => (
+            <rect
+              key={i}
+              x={5 + i * 13}
+              y={h * 0.15}
+              width="9"
+              height={h * 0.7}
+              fill={["#afbea6", "#d0b59c", "#b9c2a6"][i % 3]}
+            />
+          ))}
+        </>
+      );
+      break;
+    case "칠판":
+      drawing = (
+        <>
+          <rect width={w} height={h} fill={wood} />
+          <rect
+            x="4"
+            y="3"
+            width={w - 8}
+            height={h - 9}
+            fill={color || "#748d7c"}
+          />
+          <path
+            d={`M${w * 0.1} ${h * 0.3}h${w * 0.26}m-${w * 0.26} ${h * 0.2}h${w * 0.16}M${w * 0.55} ${h * 0.3}h${w * 0.23}`}
+            stroke="#d6dfc6"
+            strokeWidth="1.5"
+          />
+          <path
+            d={`M${w * 0.85} ${h - 3}h6m6 0h6`}
+            stroke={cream}
             strokeWidth="3"
           />
-          {[5, 16, 27, 38, 49, 60, 71, 82].map((x, i) =>
-            book(x, 15, ["#a9b9a5", "#c4c3a4", "#d4b79d"][i % 3]),
+        </>
+      );
+      break;
+    case "벤치":
+      drawing = (
+        <>
+          <path
+            d={`M${w * 0.12} 0v${h}M${w * 0.88} 0v${h}`}
+            stroke="#8e9a7c"
+            strokeWidth="3"
+          />
+          {rounded(1, h * 0.16, w - 2, h * 0.7, wood, 4, edge)}
+          {[0.34, 0.53, 0.72].map((y) => (
+            <path
+              key={y}
+              d={`M6 ${h * y}H${w - 6}`}
+              stroke="#e5ca9b"
+              strokeWidth="2"
+            />
+          ))}
+        </>
+      );
+      break;
+    case "수납장":
+      drawing = (
+        <>
+          <rect
+            x="1"
+            y="1"
+            width={w - 2}
+            height={h - 2}
+            fill={wood}
+            stroke={edge}
+            strokeWidth="2"
+          />
+          {[1 / 3, 2 / 3].map((y) => (
+            <path
+              key={y}
+              d={`M2 ${h * y}H${w - 2}`}
+              stroke={edge}
+              strokeWidth="1"
+            />
+          ))}
+          {[0.17, 0.5, 0.83].map((y) => (
+            <circle key={y} cx={w * 0.83} cy={h * y} r="1.5" fill="#a08a69" />
+          ))}
+        </>
+      );
+      break;
+    case "텔레비전":
+      drawing = (
+        <>
+          {rounded(0, 0, w, h, wood, 4)}
+          {rounded(w * 0.18, h * 0.08, w * 0.66, h * 0.84, "#728d83", 3)}
+          <path
+            d={`M${w * 0.38} ${h * 0.14}v${h * 0.68}`}
+            stroke="#bfd2bb"
+            strokeWidth="2"
+          />
+        </>
+      );
+      break;
+    case "욕조":
+      drawing = (
+        <>
+          {rounded(0, 0, w, h, "#e0deca", 2, "#b7b99f")}
+          {rounded(
+            w * 0.12,
+            h * 0.05,
+            w * 0.76,
+            h * 0.9,
+            "#f4f5e9",
+            Math.min(w * 0.3, 20),
+            "#c0cbb8",
+          )}
+          {rounded(
+            w * 0.22,
+            h * 0.15,
+            w * 0.56,
+            h * 0.68,
+            "#c9dfd7",
+            Math.min(w * 0.24, 15),
           )}
         </>
       );
-    case "수납장":
-      return (
-        <>
-          <rect
-            x="1"
-            y="1"
-            width="98"
-            height="98"
-            fill={wood}
-            stroke={edge}
-            strokeWidth="3"
-          />
-          <path d="M2 33h96M2 66h96" stroke={edge} strokeWidth="1" />
-          <circle cx="83" cy="18" r="2" fill="#a08b69" />
-          <circle cx="83" cy="51" r="2" fill="#a08b69" />
-          <circle cx="83" cy="85" r="2" fill="#a08b69" />
-        </>
-      );
-    case "욕조":
-      return (
-        <>
-          <rect
-            width="100"
-            height="100"
-            fill="#e1dfcc"
-            stroke="#b7b99f"
-            strokeWidth="3"
-          />
-          <rect
-            x="12"
-            y="5"
-            width="76"
-            height="90"
-            rx="25"
-            fill="#f3f5e9"
-            stroke="#c1cbb7"
-            strokeWidth="3"
-          />
-          <rect x="23" y="15" width="54" height="69" rx="20" fill="#c9dfd7" />
-        </>
-      );
+      break;
     case "변기":
-      return (
+      drawing = (
         <>
-          <rect
-            x="17"
-            y="0"
-            width="66"
-            height="32"
-            rx="4"
-            fill="#f4f3e7"
-            stroke="#c5cdbb"
-            strokeWidth="2"
-          />
+          {rounded(w * 0.18, 0, w * 0.64, h * 0.28, "#f4f3e7", 3, "#c5cdbb")}
           <ellipse
-            cx="50"
-            cy="61"
-            rx="39"
-            ry="38"
+            cx={w * 0.5}
+            cy={h * 0.62}
+            rx={w * 0.38}
+            ry={h * 0.36}
             fill="#f7f6eb"
             stroke="#c5cdbb"
-            strokeWidth="2"
-          />
-          <ellipse cx="50" cy="61" rx="25" ry="27" fill="#d6e2d6" />
-        </>
-      );
-    case "세면대":
-      return (
-        <>
-          <rect x="1" y="1" width="98" height="98" fill="#d5ccb3" />
-          <ellipse
-            cx="50"
-            cy="51"
-            rx="38"
-            ry="31"
-            fill="#f3f6e9"
-            stroke="#b6c7b6"
-            strokeWidth="2"
-          />
-          <path d="M50 5v22" stroke="#9fb6ab" strokeWidth="4" />
-        </>
-      );
-    case "텔레비전":
-      return (
-        <>
-          <rect width="100" height="100" rx="5" fill={wood} />
-          <rect x="20" y="9" width="67" height="82" rx="5" fill="#728d83" />
-          <path d="M40 16v69" stroke="#bfd2bb" strokeWidth="6" />
-        </>
-      );
-    case "칠판":
-      return (
-        <>
-          <rect width="100" height="100" rx="1" fill={wood} />
-          <rect x="2" y="7" width="96" height="78" fill={color || "#748d7c"} />
-          <path
-            d="M9 31h30m-30 20h16m28-20h26"
-            stroke="#d5dfc4"
-            strokeWidth="3"
-          />
-          <path d="M82 93h3m3 0h3" stroke={cream} strokeWidth="6" />
-        </>
-      );
-    case "시계":
-      return (
-        <>
-          <circle
-            cx="50"
-            cy="50"
-            r="46"
-            fill={cream}
-            stroke="#b3a17e"
-            strokeWidth="6"
-          />
-          <path
-            d="M50 20v32l20 12"
-            fill="none"
-            stroke="#a59a7b"
-            strokeWidth="6"
-            strokeLinecap="round"
-          />
-        </>
-      );
-    case "벤치":
-      return (
-        <>
-          <path d="M12 0v95m76-95v95" stroke="#899779" strokeWidth="5" />
-          <rect
-            x="1"
-            y="14"
-            width="98"
-            height="72"
-            rx="7"
-            fill={wood}
-            stroke={edge}
-            strokeWidth="3"
-          />
-          <path d="M8 33h84M8 53h84M8 72h84" stroke="#e7ce9f" strokeWidth="4" />
-        </>
-      );
-    case "분수":
-      return (
-        <>
-          <circle cx="50" cy="50" r="49" fill="#f1ecd8" />
-          <circle cx="50" cy="50" r="42" fill="#bdc6a9" />
-          <circle cx="50" cy="50" r="35" fill={color || "#a9cccb"} />
-          <circle
-            cx="50"
-            cy="50"
-            r="24"
-            fill="none"
-            stroke="#d7e9d8"
             strokeWidth="1.5"
           />
-          <circle cx="50" cy="51" r="9" fill="#d8eadb" />
-          <path
-            d="M38 50q12-34 24 0"
-            stroke="#edf4e0"
-            strokeWidth="2"
-            fill="none"
+          <ellipse
+            cx={w * 0.5}
+            cy={h * 0.62}
+            rx={w * 0.24}
+            ry={h * 0.25}
+            fill="#d6e2d6"
           />
         </>
       );
-    case "카페":
-      return (
+      break;
+    case "세면대":
+      drawing = (
         <>
-          <rect x="3" y="15" width="94" height="65" rx="4" fill={wood} />
-          <rect width="100" height="24" fill="#faf0d4" />
-          {[0, 17, 34, 51, 68, 85].map((x) => (
+          <rect width={w} height={h} fill="#d5ccb3" />
+          <ellipse
+            cx={w * 0.5}
+            cy={h * 0.52}
+            rx={w * 0.37}
+            ry={h * 0.31}
+            fill="#f3f6e9"
+            stroke="#b6c7b6"
+            strokeWidth="1.2"
+          />
+          <path
+            d={`M${w * 0.5} 1v${h * 0.25}`}
+            stroke="#9fb6ab"
+            strokeWidth="2"
+          />
+        </>
+      );
+      break;
+    case "냉장고":
+      drawing = (
+        <>
+          {rounded(1, 1, w - 2, h - 2, color || "#cbd3c0", 5, "#a8b59e")}
+          <path
+            d={`M3 ${h * 0.38}H${w - 3}M${w * 0.85} ${h * 0.12}v${h * 0.15}M${w * 0.85} ${h * 0.52}v${h * 0.3}`}
+            stroke="#a0ad98"
+            strokeWidth="2"
+          />
+        </>
+      );
+      break;
+    case "카페":
+      drawing = (
+        <>
+          {rounded(w * 0.03, h * 0.15, w * 0.94, h * 0.72, wood, 4)}
+          <rect width={w} height={h * 0.24} fill="#faf0d4" />
+          {Array.from({ length: 7 }, (_, i) => (
             <rect
-              key={x}
-              x={x}
-              width="8"
-              height="24"
+              key={i}
+              x={(i * w) / 7}
+              width={w / 14}
+              height={h * 0.24}
               fill={color || "#bb8f79"}
             />
           ))}
-          <rect x="8" y="37" width="84" height="30" fill="#d2b38b" />
-        </>
-      );
-    case "조명":
-      return (
-        <>
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            fill="#d8c692"
-            stroke="#bfa976"
-            strokeWidth="8"
-          />
-          <circle cx="50" cy="50" r="19" fill="#fffae1" />
-        </>
-      );
-    default:
-      return (
-        <>
           <rect
-            x="1"
-            y="1"
-            width="98"
-            height="98"
-            rx="3"
-            fill={color || "#f2e5b9"}
-            stroke="#d0bf92"
-            strokeWidth="2"
-          />
-          <path
-            d="M20 24h60M20 44h60M20 64h40"
-            stroke="#bcac7f"
-            strokeWidth="2"
+            x={w * 0.08}
+            y={h * 0.4}
+            width={w * 0.84}
+            height={h * 0.28}
+            fill="#d2b38b"
           />
         </>
+      );
+      break;
+    case "메모":
+      drawing = (
+        <>
+          {rounded(1, 1, w - 2, h - 2, color || "#f2e5b9", 3, "#d0bf92")}
+          <path
+            d={`M${w * 0.12} ${h * 0.25}h${w * 0.72}M${w * 0.12} ${h * 0.42}h${w * 0.72}`}
+            stroke="#c4b58c"
+            strokeWidth="1"
+          />
+        </>
+      );
+      break;
+    default:
+      drawing = (
+        <svg
+          width={w}
+          height={h}
+          viewBox="0 0 100 100"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <LegacyFurnitureArt kind={kind} color={color} />
+        </svg>
       );
   }
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="xMidYMid meet"
+      overflow="visible"
+      aria-hidden="true"
+    >
+      {drawing}
+    </svg>
+  );
 }
