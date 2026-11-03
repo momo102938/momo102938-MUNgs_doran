@@ -1,3 +1,4 @@
+import { isUntouchedLegacyHome } from "./layoutUpgrade";
 import { orderPlaces, schoolForAge } from "./schools";
 import {
   ACTIONS,
@@ -15,7 +16,7 @@ import {
   type FurnitureKind,
 } from "./types";
 import { FURNITURE_META } from "./planSpec";
-import { defaultWorld, defaultPlaces, newCharacter, uid } from "./defaults";
+import { defaultWorld, newCharacter, uid } from "./defaults";
 const obj = (v: unknown): Record<string, any> =>
   v && typeof v === "object" && !Array.isArray(v)
     ? (v as Record<string, any>)
@@ -62,7 +63,7 @@ export function normalizeWorld(input: unknown): World {
       return {
         id,
         name: text(p.name, `장소 ${i + 1}`, 40),
-        layoutVersion: number(p.layoutVersion, 0, 0, 2),
+        layoutVersion: number(p.layoutVersion, 0, 0, 6),
         floor: /^#[a-f\d]{6}$/i.test(p.floor) ? p.floor : "#e7ceaa",
         rooms: list(p.rooms ?? d.places.find((x) => x.id === id)?.rooms)
           .slice(0, 40)
@@ -116,9 +117,148 @@ export function normalizeWorld(input: unknown): World {
           })),
       };
     });
-  if (!places.length) places.push(...defaultPlaces());
+  for (const p of places) {
+    if ((p.layoutVersion || 0) >= 3) continue;
+    p.furniture = p.furniture.filter(
+      (f) =>
+        !(
+          f.kind === "의자" &&
+          f.label === "의자" &&
+          (f.rotation || 0) === 0 &&
+          ((p.id === "school" &&
+            f.x === 49 &&
+            f.y === 13 &&
+            f.w === 4 &&
+            f.h === 5) ||
+            (p.id === "university" &&
+              f.x === 30 &&
+              f.y === 11 &&
+              f.w === 4 &&
+              f.h === 5))
+        ),
+    );
+    const corrected = d.places.find((d) => d.id === p.id);
+    for (const f of p.furniture) {
+      if (f.kind !== "의자" && f.kind !== "소파") continue;
+      const match = corrected?.furniture.find(
+        (d) =>
+          d.kind === f.kind &&
+          d.x === f.x &&
+          d.y === f.y &&
+          d.w === f.w &&
+          d.h === f.h &&
+          d.label === f.label,
+      );
+      if (
+        match &&
+        ((f.rotation || 0) === 0 ||
+          (p.id === "home" && f.x === 34 && f.y === 27 && f.rotation === 90) ||
+          (p.id === "office" && f.x === 94 && f.y === 55 && f.rotation === 90))
+      )
+        f.rotation = match.rotation;
+    }
+    p.layoutVersion = 3;
+  }
+  for (const p of places) {
+    if ((p.layoutVersion || 0) >= 4) continue;
+    if (isUntouchedLegacyHome(p)) {
+      const home = d.places.find((d) => d.id === "home")!;
+      p.rooms = home.rooms;
+      p.furniture = home.furniture;
+    }
+    p.layoutVersion = 4;
+  }
+  for (const p of places) {
+    if (p.id !== "home" || (p.layoutVersion || 0) >= 5) continue;
+    const balcony = p.rooms.find(
+      (r) =>
+        r.name === "베란다" &&
+        r.x === 1 &&
+        r.y === 47 &&
+        r.w === 12 &&
+        r.h === 52,
+    );
+    const entry = p.furniture.find(
+      (f) =>
+        f.kind === "문" &&
+        f.x === 13 &&
+        f.y === 56 &&
+        f.w === 8 &&
+        f.h === 12 &&
+        f.rotation === 90 &&
+        f.label === "문",
+    );
+    if (balcony && entry) {
+      entry.kind = "미닫이창";
+      entry.h = 3;
+      entry.label = "베란다 미닫이창";
+      if (
+        !p.furniture.some((f) => f.kind === "벽" && f.y === 47 && f.x === 7)
+      ) {
+        const wall = d.places
+          .find((p) => p.id === "home")!
+          .furniture.find((f) => f.kind === "벽" && f.x === 7 && f.y === 47)!;
+        p.furniture.push({ ...wall, id: uid() });
+      }
+    }
+    p.layoutVersion = 5;
+  }
+  for (const p of places) {
+    if (p.id !== "home" || (p.layoutVersion || 0) >= 6) continue;
+    const moves = [
+      ["싱크대", 7, 24, 8, 29, 7, 31],
+      ["냉장고", 16, 17, 7, 13, 7, 8],
+      ["테이블", 26, 27, 10, 12, 33, 25],
+      ["의자", 26, 17, 4, 6, 33, 14],
+      ["의자", 26, 38, 4, 6, 33, 36],
+      ["의자", 18, 27, 4, 6, 25, 25],
+      ["의자", 34, 27, 4, 6, 41, 25],
+    ] as const;
+    for (const [kind, x, y, w, h, nx, ny] of moves) {
+      const f = p.furniture.find(
+        (f) =>
+          f.kind === kind &&
+          f.x === x &&
+          f.y === y &&
+          f.w === w &&
+          f.h === h &&
+          f.label === kind,
+      );
+      if (f) {
+        f.x = nx;
+        f.y = ny;
+      }
+    }
+    const entry = p.furniture.find(
+      (f) =>
+        f.kind === "문" &&
+        f.x === 59 &&
+        f.y === 56 &&
+        f.w === 8 &&
+        f.h === 12 &&
+        f.rotation === 90 &&
+        f.label === "문",
+    );
+    const wall = p.furniture.find(
+      (f) =>
+        f.kind === "벽" &&
+        f.x === 59 &&
+        f.y === 50 &&
+        f.w === 1.3 &&
+        f.h === 98,
+    );
+    if (entry && wall) {
+      p.furniture = p.furniture.filter((f) => f !== entry && f !== wall);
+      p.furniture.push(
+        { ...wall, id: uid(), y: 25.5, h: 49 },
+        { ...wall, id: uid(), y: 80.5, h: 37 },
+      );
+    }
+    p.layoutVersion = 6;
+  }
+  if (!places.length) places.push(...d.places);
   // 구버전에는 일부 기본 장소가 없을 수 있다. 기존 배치는 그대로 둔다.
-  for (const p of defaultPlaces())
+  for (const p of d.places)
     if (!places.some((x) => x.id === p.id)) places.push(p);
   const placeId = (v: unknown) =>
     places.some((p) => p.id === v) ? (v as string) : "home";
@@ -147,6 +287,7 @@ export function normalizeWorld(input: unknown): World {
         age: number(c.age, 25, 0, 120),
         personality: text(c.personality, base.personality, 200),
         tone: text(c.tone, base.tone, 200),
+        politeToOlder: c.politeToOlder === true,
         job: text(c.job, base.job, 100),
         likes: text(c.likes, "", 200),
         dislikes: text(c.dislikes, "", 200),
@@ -189,7 +330,7 @@ export function normalizeWorld(input: unknown): World {
   for (const c of characters) {
     c.schedule = c.schedule.map((s) => ({
       ...s,
-      placeId: schoolForAge(s.placeId, c.age),
+      placeId: schoolForAge(s.placeId, c.age, c.job),
     }));
     if (c.child) c.child.schoolId = schoolForAge(c.child.schoolId, c.age);
   }
@@ -222,8 +363,8 @@ export function normalizeWorld(input: unknown): World {
     characters,
     relationships,
     clock: date(raw.clock, d.clock),
-    pcSync: raw.pcSync === true,
-    speed: [1, 10, 60].includes(raw.speed) ? raw.speed : 10,
+    pcSync: true,
+    speed: 1,
     randomEvents: raw.randomEvents !== false,
     lastTalkAt: date(raw.lastTalkAt),
     lastEventAt: date(raw.lastEventAt),

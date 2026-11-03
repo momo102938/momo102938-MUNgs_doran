@@ -68,7 +68,7 @@ test("취침 좌표는 침대 안이며 동작은 누운 자세다", () => {
   assert.ok(intent.anchor);
   assert.ok(Math.abs(intent.anchor!.x - bed.x) < (bed.w ?? 18) / 2);
   assert.ok(Math.abs(intent.anchor!.y - bed.y) < (bed.h ?? 31) / 2);
-  assert.equal(intent.rotation, 270);
+  assert.equal(intent.rotation, bed.rotation || 0);
 });
 test("집 안의 자유 행동은 여러 목적지로 나뉜다", () => {
   const w = defaultWorld();

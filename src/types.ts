@@ -13,6 +13,9 @@ export const ACTIONS = [
   "놀이",
   "대화",
   "취침",
+  "씻기",
+  "수업",
+  "바람 쐬기",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 export const RELATION_TYPES = [
@@ -27,6 +30,7 @@ export type RelationType = (typeof RELATION_TYPES)[number];
 export const FURNITURE_KINDS = [
   "소파",
   "침대",
+  "1인 침대",
   "테이블",
   "책상",
   "화분",
@@ -44,6 +48,7 @@ export const FURNITURE_KINDS = [
   "벽",
   "문",
   "창문",
+  "미닫이창",
   "칠판",
   "교탁",
   "강의책상",
@@ -112,6 +117,7 @@ export interface Character {
   age: number;
   personality: string;
   tone: string;
+  politeToOlder: boolean;
   job: string;
   likes: string;
   dislikes: string;

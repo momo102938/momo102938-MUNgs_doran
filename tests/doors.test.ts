@@ -16,13 +16,16 @@ test("벽과 방 테두리는 같은 문틈 마스크를 사용하고 바닥은 
   const maskId = markup.match(/<mask id="([^"]+)"/)![1];
   assert.equal(
     (markup.match(/fill="black"/g) || []).length,
-    place.furniture.filter((f) => f.kind === "문").length,
+    place.furniture.filter((f) => f.kind === "문" || f.kind === "미닫이창")
+      .length,
   );
   assert.equal(
     (markup.match(new RegExp(`mask="url\\(#${maskId}\\)"`, "g")) || []).length,
     place.furniture.filter((f) => f.kind === "벽").length + 1,
   );
-  assert.ok(markup.includes("translate(531 336) rotate(90)"));
+  assert.ok(
+    !place.furniture.some((f) => f.kind === "문" && f.x === 59 && f.y === 56),
+  );
   assert.ok(markup.includes(`fill="${place.rooms[0].color}"`));
 });
 

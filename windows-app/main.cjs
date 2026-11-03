@@ -5,7 +5,6 @@ const {
   protocol,
   net,
   Menu,
-  screen,
 } = require("electron");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
@@ -117,13 +116,17 @@ app.whenReady().then(() => {
   });
   app.setAppUserModelId("com.doran.desktop");
   Menu.setApplicationMenu(null);
-  const workArea = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: Math.min(1280, workArea.width),
-    height: Math.min(800, workArea.height),
+    width: 1200,
+    height: 800,
     useContentSize: false,
-    minWidth: 760,
-    minHeight: 600,
+    minWidth: 1200,
+    minHeight: 800,
+    maxWidth: 1200,
+    maxHeight: 800,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
     title: "도란",
     backgroundColor: "#f7f5ef",
     icon: ICON_PATH,

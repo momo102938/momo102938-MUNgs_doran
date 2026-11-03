@@ -1,0 +1,221 @@
+/* 글꼴은 앱에 포함한다. 실행 중 CDN이나 글꼴 서버에 접속하지 않는다. */
+@font-face {
+  font-family: "SUIT";
+  src: url("/fonts/SUIT-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+:root {
+  --font-title: "SUIT", sans-serif;
+  --font-ui: "SUIT", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-ui);
+}
+h1,
+h2 {
+  font-family: var(--font-title);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+h3,
+h4,
+strong,
+b {
+  font-weight: 650;
+}
+.app .observe-title h1,
+.app.observe-mode .observe-title h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 30px;
+  line-height: 1.25;
+  font-family: var(--font-title);
+  font-weight: 400;
+}
+.app .title-mascot {
+  width: 33px;
+  height: 33px;
+}
+.app .editor h2 {
+  font-size: 25px;
+  font-weight: 400;
+}
+.app .inspector-profile h2 {
+  font-size: 23px;
+  font-weight: 400;
+}
+.app .sidebar nav button {
+  font-size: 12px;
+  font-weight: 500;
+}
+.day-clock strong {
+  font-family: var(--font-ui);
+  font-weight: 550;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+.plan-room-label {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.plan-speech {
+  font-family: var(--font-ui);
+  font-weight: 450;
+  letter-spacing: 0;
+}
+.start-notice h2 {
+  font-family: var(--font-title);
+  font-size: 25px;
+  font-weight: 400;
+}
+.start-notice p,
+.start-notice li {
+  font-size: 13px;
+  font-weight: 450;
+  letter-spacing: 0;
+}
+.portrait .portrait-help {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.brand-wordmark {
+  display: block;
+  height: 30px;
+  width: auto;
+  max-width: 150px;
+  object-fit: contain;
+}
+.start-notice h2,
+.app .editor h2,
+.app .inspector-profile h2 {
+  font-weight: 700;
+}
+/* 사용자가 PC에 설치한 원본 글꼴은 변경 가능한 이름에도 사용할 수 있다. */
+@font-face {
+  font-family: "Kotra Local";
+  src: local("KOTRA_BOLD-Bold"), local("KOTRA_BOLD"), local("KOTRA BOLD");
+  font-weight: 100 900;
+  font-display: swap;
+}
+h1,
+h2,
+h3,
+h4,
+strong,
+b,
+.editor summary {
+  font-family: "Kotra Local", var(--font-ui);
+}
+.kotra-text {
+  display: inline-block;
+  height: 0.92em;
+  position: relative;
+  vertical-align: -0.035em;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.kotra-text > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.kotra-live {
+  font-family: "Kotra Local", var(--font-ui);
+}
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.start-notice .start-notice-heading {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 20px;
+}
+.start-notice-heading .start-notice-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  flex: 0 0 auto;
+}
+.start-notice .start-notice-heading h2 {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.35;
+}
+@media (max-width: 420px) {
+  .start-notice .start-notice-heading {
+    gap: 0;
+  }
+  .start-notice-heading .start-notice-icon {
+    width: 43px;
+    height: 43px;
+  }
+  .start-notice .start-notice-heading h2 {
+    font-size: 17px;
+  }
+}
+
+.start-notice-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.app-version {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 450;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: #aaa18f;
+  white-space: nowrap;
+}
+.observe-title h1 > .app-version {
+  align-self: center;
+  margin-left: 1px;
+}
+.start-notice-title-row > .app-version {
+  font-size: 10px;
+}
+
+.kotra-ink {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+.sidebar nav button .kotra-text,
+.sidebar nav button .kotra-live {
+  font-size: inherit;
+  color: inherit;
+}
